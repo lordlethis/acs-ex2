@@ -14,7 +14,18 @@ USERIF_LIBS = $(ALL_ENV_LIBS) # that is, $(TKENV_LIBS) $(CMDENV_LIBS)
 #USERIF_LIBS = $(TKENV_LIBS)
 
 # C++ include paths (with -I)
-INCLUDE_PATH = -I.
+INCLUDE_PATH = \
+    -I. \
+    -Iimages \
+    -Iimages/abstract \
+    -Iimages/background \
+    -Iimages/block \
+    -Iimages/device \
+    -Iimages/maps \
+    -Iimages/misc \
+    -Iimages/msg \
+    -Iimages/old \
+    -Iimages/status
 
 # Additional object and library files to link with
 EXTRA_OBJS =
@@ -94,12 +105,22 @@ clean:
 	-rm -rf $O
 	-rm -f exercise2 exercise2.exe libexercise2.so libexercise2.a libexercise2.dll libexercise2.dylib
 	-rm -f ./*_m.cpp ./*_m.h
+	-rm -f images/*_m.cpp images/*_m.h
+	-rm -f images/abstract/*_m.cpp images/abstract/*_m.h
+	-rm -f images/background/*_m.cpp images/background/*_m.h
+	-rm -f images/block/*_m.cpp images/block/*_m.h
+	-rm -f images/device/*_m.cpp images/device/*_m.h
+	-rm -f images/maps/*_m.cpp images/maps/*_m.h
+	-rm -f images/misc/*_m.cpp images/misc/*_m.h
+	-rm -f images/msg/*_m.cpp images/msg/*_m.h
+	-rm -f images/old/*_m.cpp images/old/*_m.h
+	-rm -f images/status/*_m.cpp images/status/*_m.h
 
 cleanall: clean
 	-rm -rf $(PROJECT_OUTPUT_DIR)
 
 depend:
-	$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cpp
+	$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cpp images/*.cpp images/abstract/*.cpp images/background/*.cpp images/block/*.cpp images/device/*.cpp images/maps/*.cpp images/misc/*.cpp images/msg/*.cpp images/old/*.cpp images/status/*.cpp
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 $O/task2node.o: task2node.cpp \

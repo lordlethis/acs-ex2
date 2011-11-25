@@ -23,10 +23,10 @@ class Identifier;
 /**
  * A class to hold the code of nodes o.o
  */
-class Node : public cSimpleModule {
+class IdNode : public cSimpleModule {
 public:
-	Node() {}
-	virtual ~Node() {}
+	IdNode() {}
+	virtual ~IdNode() {}
 protected:
   // The following redefined virtual function holds the algorithm.
   virtual void initialize();

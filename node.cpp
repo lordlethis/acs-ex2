@@ -39,9 +39,9 @@ public:
 };
 
 // Register module class with OMNeT++
-Define_Module(Node);
+Define_Module(IdNode);
 
-void Node::initialize()
+void IdNode::initialize()
 {
 	id = NULL;
 	hasId = false;
@@ -67,7 +67,7 @@ void Node::initialize()
  * Returns a object we can stream log messages into. The message is prepended with
  * this nodes name & index
  */
-cEnvir& Node::log()
+cEnvir& IdNode::log()
 {
 	return (EV << "(" << getName() << "[" << getIndex() << "]" << ") ");
 }
@@ -78,7 +78,7 @@ cEnvir& Node::log()
  * As a side effect, the node's color is changed in the UI to reflect the
  * association state (gray <-> disconnected, green <-> connected).
  */
-void Node::setHasId(bool has)
+void IdNode::setHasId(bool has)
 {
 	hasId = has;
 	if (hasId)
@@ -92,14 +92,14 @@ void Node::setHasId(bool has)
 	}
 }
 
-void Node::scheduleHeartBeatCheck()
+void IdNode::scheduleHeartBeatCheck()
 {
 	cMessage* msg = new cMessage(CHECK_HEARTBEAT_MSG);
 	msg->setControlInfo(new HeartControl(prevBeatSeq));
 	scheduleAt(prevBeatTime+beatInterval, msg);
 }
 
-void Node::handleMessage(cMessage *msg)
+void IdNode::handleMessage(cMessage *msg)
 {
 	// check whether we got a self-message telling us to join the network
 	if (msg->getName() != NULL && !strcmp(msg->getName(),DO_JOIN_MSG))
