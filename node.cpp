@@ -21,7 +21,7 @@
 #define DO_LEAVE_MSG  "LEAVE_NETWORK"
 #define CHECK_HEARTBEAT_MSG "CHECK_PULSE"
 
-static Task1Message* copyMessage(Task1Message* msg);
+static AcsMessage* copyMessage(AcsMessage* msg);
 
 /**
  * Helper object to remember the last heart beat's sequence number
@@ -160,7 +160,7 @@ void IdNode::handleMessage(cMessage *msg)
 	else
 	{
 		bool broadcast = true;
-		Task1Message *tmsg = check_and_cast<Task1Message*>(msg);
+		AcsMessage *tmsg = check_and_cast<AcsMessage*>(msg);
 
 		// abort if we've already touched this msg
 		if (hasId) {
@@ -262,7 +262,7 @@ void IdNode::handleMessage(cMessage *msg)
 			tmsg->getPath().push_back(*id);
 			for (int i = 0; i < gateSize("gate"); ++i) {
 				if (i == idx) continue;
-				Task1Message *m = copyMessage(tmsg);
+				AcsMessage *m = copyMessage(tmsg);
 				if (m)
 				{
 					send(m, "gate$o",i);
@@ -280,9 +280,9 @@ void IdNode::handleMessage(cMessage *msg)
  * Copy messages ... The stupid way, without using cMessage::dup() ... *sigh*
  * @deprecated
  */
-static Task1Message* copyMessage(Task1Message *msg)
+static AcsMessage* copyMessage(AcsMessage *msg)
 {
-	Task1Message* result;
+	AcsMessage* result;
 	switch (msg->getMsgType())
 	{
 	case PING: {

@@ -88,7 +88,7 @@ void IdServer::handleMessage(cMessage *msg)
 	else
 	{
 		log() << "Handling real msg...\n";
-		Task1Message *tmsg = check_and_cast<Task1Message*>(msg);
+		AcsMessage *tmsg = check_and_cast<AcsMessage*>(msg);
 		switch (tmsg->getMsgType())
 		{
 		case PONG:

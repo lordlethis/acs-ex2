@@ -27,28 +27,28 @@ cplusplus {{
 struct Identifier;
 struct PacketPath;
 
-message Task1Message {
+message AcsMessage {
     int msgType;
     PacketPath path;
 }
 
-message Ping extends Task1Message {
+message Ping extends AcsMessage {
     msgType = PING;
     Identifier id;
 }
-message Pong extends Task1Message {
+message Pong extends AcsMessage {
     msgType = PONG;
 	Identifier id;
 }
 
-message AcquireId extends Task1Message {
+message AcquireId extends AcsMessage {
     msgType = ACQUIRE_ID;
     Identifier id;
     bool hasId;
     long messageId;
 }
 
-message IdAssignment extends Task1Message {
+message IdAssignment extends AcsMessage {
     msgType = ID_ASSIGNMENT;
     Identifier id;
     long messageId;
@@ -57,7 +57,7 @@ message IdAssignment extends Task1Message {
 }
 
 // added in task 3
-message HeartBeat extends Task1Message {
+message HeartBeat extends AcsMessage {
     msgType = HEARTBEAT;
     long seq;
 }
