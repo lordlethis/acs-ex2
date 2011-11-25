@@ -27,18 +27,40 @@ protected:
 private:
     cEnvir& log();
     Identifier* id;
+    /** the amount of time we wait for a PONG */
     int timeout;
-    /** @since task 3 */
+    /**
+     * Heart beat counter
+     */
     long heartBeat;
-    /** @since task 3 */
+    /**
+     * The interval in which heart beats are fired
+     */
     int pulseRate;
-    /** @since task 3 */
+    /**
+     * The time when our previous heart beat fired
+     */
     simtime_t lastBeat;
-    t1id_t rangeStart, rangeEnd;
-    t1id_t nextId;
-    boost::unordered_map<t1id_t, cMessage*> pendingIds;
-    /** @since task 3 */
+    /**
+     * A self-message to remind our heart to beat...
+     */
     cMessage fireBeat;
+    /**
+     * Start of the ID range
+     */
+    t1id_t rangeStart;
+    /**
+     * End of the ID range
+     */
+    t1id_t rangeEnd;
+    /**
+     * Candidate for the next id. We just count up each time and hope nobody is using this... ^.^
+     */
+    t1id_t nextId;
+    /**
+     * Map candidate ID to message - contains all IDs that still wait for a PONG or timeout
+     */
+    boost::unordered_map<t1id_t, cMessage*> pendingIds;
 };
 
 

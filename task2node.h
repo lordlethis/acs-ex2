@@ -20,6 +20,9 @@
 
 class Identifier;
 
+/**
+ * A class to hold the code of nodes o.o
+ */
 class Task2Node : public cSimpleModule {
 public:
 	Task2Node() {}

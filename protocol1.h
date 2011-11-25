@@ -6,6 +6,10 @@
 #include <omnetpp.h>
 #include <sstream>
 
+/**
+ * Stupid wrapper class around identifiers. Initially implemented to allow using __int128,
+ * and left in due to laziness... ^.^
+ */
 struct Identifier : public cObject
 {
 	Identifier() : id(0) {}
@@ -17,6 +21,9 @@ struct Identifier : public cObject
 	bool operator ==(const Identifier& other) const { return other.id == id; }
 };
 
+/**
+ * Typedef to allow us to use vectors in .msg files
+ */
 typedef std::vector<Identifier> PacketPath;
 
 #endif //_TASK1_PROTOCOL_

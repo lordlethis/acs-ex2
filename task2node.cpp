@@ -16,13 +16,21 @@
 #include "task2node.h"
 #include "protocol1_m.h"
 
+/** constants for self-messages */
 #define DO_JOIN_MSG   "GET_AN_ID"
 #define DO_LEAVE_MSG  "LEAVE_NETWORK"
 #define CHECK_HEARTBEAT_MSG "CHECK_PULSE"
 
-
 static Task1Message* copyMessage(Task1Message* msg);
 
+/**
+ * Helper object to remember the last heart beat's sequence number
+ * from when the self-message was fired off.
+ * (we always schedule a message to ourselves, telling us to check
+ *  whether a new heart beat arrived in the mean time. So this
+ *  object's number together with the value maintained in the object
+ *  itself will tell us whether we did get a heart beat.)
+ */
 class HeartControl : public cObject
 {
 public:
@@ -37,11 +45,13 @@ void Task2Node::initialize()
 {
 	id = NULL;
 	hasId = false;
+	// make stuff observable in UI
 	WATCH_PTR(id);
 	WATCH(hasId);
 	WATCH(beatInterval);
 	WATCH(prevBeatSeq);
 	WATCH(prevBeatTime);
+	// read params from ned/ini file
 	minKeepIdTime = par("minKeepIdTime");
 	maxKeepIdTime = par("maxKeepIdTime");
 	retryTime = par("retryTime");
@@ -53,12 +63,21 @@ void Task2Node::initialize()
 	scheduleAt(simTime()+initialDelay, msg);
 }
 
+/**
+ * Returns a object we can stream log messages into. The message is prepended with
+ * this nodes name & index
+ */
 cEnvir& Task2Node::log()
 {
 	return (EV << "(" << getName() << "[" << getIndex() << "]" << ") ");
 }
 
-
+/**
+ * Setter method indicating whether the node has an id, i.e. whether it is
+ * associated with the network.
+ * As a side effect, the node's color is changed in the UI to reflect the
+ * association state (gray <-> disconnected, green <-> connected).
+ */
 void Task2Node::setHasId(bool has)
 {
 	hasId = has;
@@ -82,10 +101,12 @@ void Task2Node::scheduleHeartBeatCheck()
 
 void Task2Node::handleMessage(cMessage *msg)
 {
+	// check whether we got a self-message telling us to join the network
 	if (msg->getName() != NULL && !strcmp(msg->getName(),DO_JOIN_MSG))
 	{
-		if (!hasId)
+		if (!hasId) // we ignore this self-message if we're already associated
 		{
+			// prepare an AcquireId message and send it out
 			AcquireId *amsg = new AcquireId("ACQUIRE_ID");
 			if (id != NULL)
 			{
@@ -104,8 +125,10 @@ void Task2Node::handleMessage(cMessage *msg)
 		}
 		delete msg;
 	}
+	// check if we got a self-message telling us to drop out of the network (because we can)
 	else if (msg->getName() && !strcmp(msg->getName(), DO_LEAVE_MSG))
 	{
+		// drop out of network, schedule reassociation
 		log() << "Leaving the network\n";
 		dropout = NULL;
 		setHasId(false);
@@ -114,6 +137,7 @@ void Task2Node::handleMessage(cMessage *msg)
 		scheduleAt(simTime()+delay,jmsg);
 		delete msg;
 	}
+	// check if we got a self-message telling us to check the heart beat reception
 	else if (msg->getName() && !strcmp(msg->getName(), CHECK_HEARTBEAT_MSG))
 	{
 		HeartControl *ctrl = (HeartControl*)msg->getControlInfo();
@@ -124,6 +148,7 @@ void Task2Node::handleMessage(cMessage *msg)
 			if (dropout)
 				cancelAndDelete(dropout);
 			dropout = NULL;
+			// schedule reassociation
 			cMessage* jmsg = new cMessage(DO_JOIN_MSG);
 			simtime_t delay = rejoinDelay;
 			scheduleAt(simTime()+delay,jmsg);
@@ -152,10 +177,12 @@ void Task2Node::handleMessage(cMessage *msg)
 		switch (tmsg->getMsgType())
 		{
 		case PING:
+			// ignore ping if we're not associated
 			if (hasId)
 			{
 				if (((Ping*)tmsg)->getId().id == id->id)
 				{
+					// we were pinged. respond with pong :D
 					Pong* pong = new Pong("PONG");
 					pong->setId(id->id);
 					cGate* gate = msg->getArrivalGate();
@@ -165,13 +192,16 @@ void Task2Node::handleMessage(cMessage *msg)
 			}
 			break;
 		case ID_ASSIGNMENT:
+			// if we have an id, don't check if the message is for this node
 			if (!hasId && ((IdAssignment*)tmsg)->getMessageId() == this->acquireMessageId)
 			{
 				if (id != NULL)
 					delete id;
+				// remember the id we just obtained
 				id = new Identifier(((IdAssignment*)tmsg)->getId().id);
 				setHasId(true);
 				log() << "got id \"" << id->id << "\"\n";
+				// fetch heart beat information
 				prevBeatSeq = ((IdAssignment*)tmsg)->getLastHeartBeat();
 				beatInterval = ((IdAssignment*)tmsg)->getBeatInterval();
 				beatInterval = beatInterval+beatInterval/4;
@@ -195,6 +225,7 @@ void Task2Node::handleMessage(cMessage *msg)
 				HeartBeat *beat = (HeartBeat*)msg;
 				if (beat->getSeq() == prevBeatSeq+1)
 				{
+					// everything is working as it should
 					prevBeatSeq++;
 					prevBeatTime = simTime();
 					scheduleHeartBeatCheck();
@@ -226,6 +257,7 @@ void Task2Node::handleMessage(cMessage *msg)
 		// broadcast code
 		if (hasId && broadcast)
 		{
+			// send a copy of the message on all gates except for the input gate of the message
 			int idx = tmsg->getArrivalGate()->getIndex();
 			tmsg->getPath().push_back(*id);
 			for (int i = 0; i < gateSize("gate"); ++i) {
@@ -238,11 +270,16 @@ void Task2Node::handleMessage(cMessage *msg)
 			}
 		}
 
+		// clean up
 		if (msg)
 			delete msg;
 	}
 }
 
+/**
+ * Copy messages ... The stupid way, without using cMessage::dup() ... *sigh*
+ * @deprecated
+ */
 static Task1Message* copyMessage(Task1Message *msg)
 {
 	Task1Message* result;
