@@ -123,11 +123,6 @@ depend:
 	$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cpp images/*.cpp images/abstract/*.cpp images/background/*.cpp images/block/*.cpp images/device/*.cpp images/maps/*.cpp images/misc/*.cpp images/msg/*.cpp images/old/*.cpp images/status/*.cpp
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-$O/task2node.o: task2node.cpp \
-	protocol_m.h \
-	protocol.h \
-	types.h \
-	node.h
 $O/idserver.o: idserver.cpp \
 	idserver.h \
 	protocol_m.h \
