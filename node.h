@@ -23,17 +23,16 @@ class Identifier;
 /**
  * A class to hold the code of nodes o.o
  */
-class Task2Node : public cSimpleModule {
+class Node : public cSimpleModule {
 public:
-	Task2Node() {}
-	virtual ~Task2Node() {}
+	Node() {}
+	virtual ~Node() {}
 protected:
   // The following redefined virtual function holds the algorithm.
   virtual void initialize();
   virtual void handleMessage(cMessage *msg);
-  /** @since task 3 - code deduplication w/o backport to task 2 project... */
+  /** set hasId and set node color in ui accordingly */
   virtual void setHasId(bool has);
-  /** @since task 3 */
   virtual void scheduleHeartBeatCheck();
 private:
   cEnvir& log();
@@ -44,16 +43,16 @@ private:
   int minKeepIdTime;
   int maxKeepIdTime;
   long acquireMessageId;
-  /** @since task 3 */
+  /** sequence number of the last heart beat msg we received */
   long prevBeatSeq;
-  /** @since task 3 */
+  /** time when we received the last heart beaet */
   simtime_t prevBeatTime;
-  /** @since task 3 */
+  /** did we already receive a heart beat earlier on? */
   bool firstBeat;
-  /** @since task 3 */
+  /** the interval in which the server is firing heart beats */
   int beatInterval;
   Identifier* id;
-  /** @since task 3 */
+  /** self-message to instruct ourselves to drop out of the network */
   cMessage *dropout;
 };
 

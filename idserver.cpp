@@ -1,10 +1,10 @@
-#include "task2server.h"
+#include "idserver.h"
 #include <string.h>
-#include "protocol1_m.h"
+#include "protocol_m.h"
 #include <stdio.h>
 
 // Register module class with OMNeT++
-Define_Module(Task2Server);
+Define_Module(IdServer);
 
 #define DELAY_MESSAGE "delaymsg"
 
@@ -15,7 +15,7 @@ public:
 	t1id_t id;
 };
 
-void Task2Server::initialize()
+void IdServer::initialize()
 {
 	// read params from ned/ini file
 	timeout = par("timeout");
@@ -37,13 +37,13 @@ void Task2Server::initialize()
 }
 
 
-cEnvir& Task2Server::log()
+cEnvir& IdServer::log()
 {
 	return (EV << "(" << getName()  << ") ");
 }
 
 
-void Task2Server::handleMessage(cMessage *msg)
+void IdServer::handleMessage(cMessage *msg)
 {
 	// check if we got a delay message
 	// delay messages are badly named, but upon reception, we check if

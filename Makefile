@@ -28,11 +28,11 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cpp and .msg files
-OBJS = $O/task2server.o $O/task2node.o $O/protocol1_m.o
+OBJS = $O/idserver.o $O/node.o $O/protocol_m.o
 
 # Message files
 MSGFILES = \
-    protocol1.msg
+    protocol.msg
 
 #------------------------------------------------------------------------------
 
@@ -102,18 +102,23 @@ depend:
 	$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cpp
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-$O/task2server.o: task2server.cpp \
-	protocol1_m.h \
-	task2server.h \
-	types.h \
-	protocol1.h
 $O/task2node.o: task2node.cpp \
-	protocol1_m.h \
+	protocol_m.h \
+	protocol.h \
 	types.h \
-	protocol1.h \
-	task2node.h
-$O/protocol1_m.o: protocol1_m.cpp \
-	protocol1_m.h \
+	node.h
+$O/idserver.o: idserver.cpp \
+	idserver.h \
+	protocol_m.h \
+	protocol.h \
+	types.h
+$O/node.o: node.cpp \
+	protocol_m.h \
+	protocol.h \
 	types.h \
-	protocol1.h
+	node.h
+$O/protocol_m.o: protocol_m.cpp \
+	protocol_m.h \
+	protocol.h \
+	types.h
 

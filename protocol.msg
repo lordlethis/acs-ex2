@@ -22,7 +22,7 @@ enum MessageType {
 }
 
 cplusplus {{
-#include "protocol1.h"
+#include "protocol.h"
 }}
 struct Identifier;
 struct PacketPath;

@@ -13,8 +13,8 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "task2node.h"
-#include "protocol1_m.h"
+#include "node.h"
+#include "protocol_m.h"
 
 /** constants for self-messages */
 #define DO_JOIN_MSG   "GET_AN_ID"
@@ -39,9 +39,9 @@ public:
 };
 
 // Register module class with OMNeT++
-Define_Module(Task2Node);
+Define_Module(Node);
 
-void Task2Node::initialize()
+void Node::initialize()
 {
 	id = NULL;
 	hasId = false;
@@ -67,7 +67,7 @@ void Task2Node::initialize()
  * Returns a object we can stream log messages into. The message is prepended with
  * this nodes name & index
  */
-cEnvir& Task2Node::log()
+cEnvir& Node::log()
 {
 	return (EV << "(" << getName() << "[" << getIndex() << "]" << ") ");
 }
@@ -78,7 +78,7 @@ cEnvir& Task2Node::log()
  * As a side effect, the node's color is changed in the UI to reflect the
  * association state (gray <-> disconnected, green <-> connected).
  */
-void Task2Node::setHasId(bool has)
+void Node::setHasId(bool has)
 {
 	hasId = has;
 	if (hasId)
@@ -92,14 +92,14 @@ void Task2Node::setHasId(bool has)
 	}
 }
 
-void Task2Node::scheduleHeartBeatCheck()
+void Node::scheduleHeartBeatCheck()
 {
 	cMessage* msg = new cMessage(CHECK_HEARTBEAT_MSG);
 	msg->setControlInfo(new HeartControl(prevBeatSeq));
 	scheduleAt(prevBeatTime+beatInterval, msg);
 }
 
-void Task2Node::handleMessage(cMessage *msg)
+void Node::handleMessage(cMessage *msg)
 {
 	// check whether we got a self-message telling us to join the network
 	if (msg->getName() != NULL && !strcmp(msg->getName(),DO_JOIN_MSG))

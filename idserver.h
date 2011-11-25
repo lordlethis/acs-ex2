@@ -16,10 +16,10 @@
 
 class Identifier;
 
-class Task2Server : public cSimpleModule
+class IdServer : public cSimpleModule
 {
 public:
-	Task2Server() : heartBeat(0),fireBeat(DO_PULSE_MSG) {}
+	IdServer() : heartBeat(0),fireBeat(DO_PULSE_MSG) {}
 protected:
     // The following redefined virtual function holds the algorithm.
     virtual void initialize();
