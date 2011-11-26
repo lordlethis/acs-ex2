@@ -282,34 +282,7 @@ void IdNode::handleMessage(cMessage *msg)
  */
 static AcsMessage* copyMessage(AcsMessage *msg)
 {
-	AcsMessage* result;
-	switch (msg->getMsgType())
-	{
-	case PING: {
-		result = new Ping(*((Ping*)msg));
-		break;
-		}
-	case PONG: {
-		result = new Pong(*((Pong*)msg));
-		break;
-		}
-	case ID_ASSIGNMENT: {
-		result = new IdAssignment(*((IdAssignment*)msg));
-		break;
-		}
-	case ACQUIRE_ID: {
-		result = new AcquireId(*((AcquireId*)msg));
-		break;
-		}
-	case HEARTBEAT: { // yeah, that case is new, too
-		result = new HeartBeat(*((HeartBeat*)msg));
-		break;
-	}
-	default: {
-		result = NULL;
-		break;
-		}
-	}
+	AcsMessage* result = msg->dup();
 	if (result) {
 		result->getPath() = msg->getPath();
 		if (result->getPath().size() != msg->getPath().size())
