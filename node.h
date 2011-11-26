@@ -16,27 +16,32 @@
 #ifndef TASK2NODE_H_
 #define TASK2NODE_H_
 
-#include <omnetpp.h>
+#include "commonnode.h"
+//#include <omnetpp.h>
 
 class Identifier;
 
 /**
  * A class to hold the code of nodes o.o
  */
-class IdNode : public cSimpleModule {
+class IdNode : public CommonNode {
 public:
 	IdNode() {}
 	virtual ~IdNode() {}
 protected:
   // The following redefined virtual function holds the algorithm.
   virtual void initialize();
-  virtual void handleMessage(cMessage *msg);
+ // virtual void handleMessage(cMessage *msg);
   /** set hasId and set node color in ui accordingly */
   virtual void setHasId(bool has);
+  virtual bool hasId() { return _hasId; }
+  virtual Identifier* getId() { return id; }
   virtual void scheduleHeartBeatCheck();
+  virtual HandlingState handleUncommonMessage(cMessage *msg);
+  virtual void handleSelfMessage(cMessage *msg);
 private:
   cEnvir& log();
-  bool hasId;
+  bool _hasId;
   int initialDelay;
   int rejoinDelay;
   int retryTime;

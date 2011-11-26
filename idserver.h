@@ -9,6 +9,7 @@
 #define TASK2SERVER_H_
 
 #include <omnetpp.h>
+#include "commonnode.h"
 #include <boost/unordered_map.hpp>
 #include "types.h"
 
@@ -16,14 +17,17 @@
 
 class Identifier;
 
-class IdServer : public cSimpleModule
+class IdServer : public CommonNode
 {
 public:
 	IdServer() : heartBeat(0),fireBeat(DO_PULSE_MSG) {}
 protected:
     // The following redefined virtual function holds the algorithm.
     virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+    virtual void handleSelfMessage(cMessage *msg);
+    virtual HandlingState handleUncommonMessage(cMessage *msg);
+    virtual bool hasId() { return true; }
+    virtual Identifier* getId() { return id; }
 private:
     cEnvir& log();
     Identifier* id;

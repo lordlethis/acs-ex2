@@ -42,8 +42,7 @@ cEnvir& IdServer::log()
 	return (EV << "(" << getName()  << ") ");
 }
 
-
-void IdServer::handleMessage(cMessage *msg)
+void IdServer::handleSelfMessage(cMessage *msg)
 {
 	// check if we got a delay message
 	// delay messages are badly named, but upon reception, we check if
@@ -85,78 +84,84 @@ void IdServer::handleMessage(cMessage *msg)
 		lastBeat += pulseRate;
 		scheduleAt(lastBeat, &fireBeat);
 	}
-	else
+
+}
+
+CommonNode::HandlingState IdServer::handleUncommonMessage(cMessage *msg)
+{
+	log() << "Handling real msg...\n";
+	AcsMessage *tmsg = check_and_cast<AcsMessage*>(msg);
+	CommonNode::HandlingState state = HandlingStates::UNHANDLED;
+	switch (tmsg->getMsgType())
 	{
-		log() << "Handling real msg...\n";
-		AcsMessage *tmsg = check_and_cast<AcsMessage*>(msg);
-		switch (tmsg->getMsgType())
+	case PONG:
 		{
-		case PONG:
+			Pong *pong = (Pong*)tmsg;
+			t1id_t _id = pong->getId().id;
+			pendingIds.erase(_id);
+			state = HandlingStates::HANDLED | HandlingStates::FORWARD;
+		}
+	break;
+	case ACQUIRE_ID:
+		{
+			// a client wants a new ID
+			state = HandlingStates::HANDLED;
+			bool foundId = false;
+			t1id_t attempts = 0;
+			t1id_t _id;
+			AcquireId* amsg = check_and_cast<AcquireId*>(msg);
+			// did we get this request before? if so, ignore it
+			for (boost::unordered_map<t1id_t, cMessage*>::iterator iter = pendingIds.begin(); iter != pendingIds.end(); ++iter)
 			{
-				Pong *pong = (Pong*)tmsg;
-				t1id_t _id = pong->getId().id;
-				pendingIds.erase(_id);
-				delete pong;
+				AcquireId* a = dynamic_cast<AcquireId*>(iter->second);
+				if (a && a->getMessageId() == amsg->getMessageId())
+				{
+					return HandlingStates::HANDLED;
+				}
 			}
-		break;
-		case ACQUIRE_ID:
+			// maybe the client wished for a specific id?
+			_id = amsg->getId().id;
+			foundId = amsg->getHasId();
+			// find an id that may be free (if we do not already have one)
+			while (!foundId && (rangeEnd-rangeStart) >= attempts)
 			{
-				// a client wants a new ID
-				bool foundId = false;
-				t1id_t attempts = 0;
-				t1id_t _id;
-				AcquireId* amsg = check_and_cast<AcquireId*>(msg);
-				// did we get this request before? if so, ignore it
-				for (boost::unordered_map<t1id_t, cMessage*>::iterator iter = pendingIds.begin(); iter != pendingIds.end(); ++iter)
-				{
-					AcquireId* a = dynamic_cast<AcquireId*>(iter->second);
-					if (a && a->getMessageId() == amsg->getMessageId())
-					{
-						delete amsg;
-						return;
-					}
-				}
-				// maybe the client wished for a specific id?
-				_id = amsg->getId().id;
-				foundId = amsg->getHasId();
-				// find an id that may be free (if we do not already have one)
-				while (!foundId && (rangeEnd-rangeStart) >= attempts)
-				{
-					_id = nextId;
-					if (nextId == rangeEnd)
-						nextId = rangeStart;
-					else
-						nextId++;
-					if (!(pendingIds.find(_id) != pendingIds.end()))
-						foundId = true;
-					else
-						++attempts;
-				}
-				if (!foundId)
-				{
-					// tough luck ... but clients can try again :D
-					delete msg;
-					break;
-				}
-
-				// send ping through all gates to find out if the id is actually free
-				log() << "probing for id \"" << _id << "\"\n";
-				int ngates = gateSize("gate");
-				for (int i = 0; i < ngates; ++i)
-				{
-					Ping *ping = new Ping("PING",PING);
-					ping->setId(Identifier(_id));
-					send(ping, "gate$o", i);
-				}
-
-				// store id/message pair in map for later retrieval (to respond)
-				pendingIds[_id] = msg;
-				// send msg to self to respond to the client at some point
-				cMessage* dmsg = new cMessage(DELAY_MESSAGE);
-				dmsg->setControlInfo(new IdControl(_id));
-				scheduleAt(simTime()+timeout, dmsg);
+				_id = nextId;
+				if (nextId == rangeEnd)
+					nextId = rangeStart;
+				else
+					nextId++;
+				if (!(pendingIds.find(_id) != pendingIds.end()))
+					foundId = true;
+				else
+					++attempts;
+			}
+			if (!foundId)
+			{
+				// tough luck ... but clients can try again :D
 				break;
 			}
+
+			// send ping through all gates to find out if the id is actually free
+			log() << "probing for id \"" << _id << "\"\n";
+			int ngates = gateSize("gate");
+			for (int i = 0; i < ngates; ++i)
+			{
+				Ping *ping = new Ping("PING",PING);
+				ping->getPath().push_back(*getId());
+				ping->setId(Identifier(_id));
+				send(ping, "gate$o", i);
+			}
+
+			// store id/message pair in map for later retrieval (to respond)
+			pendingIds[_id] = msg;
+			// send msg to self to respond to the client at some point
+			cMessage* dmsg = new cMessage(DELAY_MESSAGE);
+			dmsg->setControlInfo(new IdControl(_id));
+			scheduleAt(simTime()+timeout, dmsg);
+			state |= HandlingStates::NODELETE;
+			log() << "Returning handling state: " << state;
+			break;
 		}
 	}
+	return state;
 }

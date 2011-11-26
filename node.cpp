@@ -44,10 +44,10 @@ Define_Module(IdNode);
 void IdNode::initialize()
 {
 	id = NULL;
-	hasId = false;
+	_hasId = false;
 	// make stuff observable in UI
 	WATCH_PTR(id);
-	WATCH(hasId);
+	WATCH(_hasId);
 	WATCH(beatInterval);
 	WATCH(prevBeatSeq);
 	WATCH(prevBeatTime);
@@ -80,8 +80,8 @@ cEnvir& IdNode::log()
  */
 void IdNode::setHasId(bool has)
 {
-	hasId = has;
-	if (hasId)
+	_hasId = has;
+	if (_hasId)
 	{
 		setDisplayString("i=block/routing,green");
 		firstBeat = true;
@@ -99,12 +99,12 @@ void IdNode::scheduleHeartBeatCheck()
 	scheduleAt(prevBeatTime+beatInterval, msg);
 }
 
-void IdNode::handleMessage(cMessage *msg)
+void IdNode::handleSelfMessage(cMessage *msg)
 {
 	// check whether we got a self-message telling us to join the network
 	if (msg->getName() != NULL && !strcmp(msg->getName(),DO_JOIN_MSG))
 	{
-		if (!hasId) // we ignore this self-message if we're already associated
+		if (!hasId()) // we ignore this self-message if we're already associated
 		{
 			// prepare an AcquireId message and send it out
 			AcquireId *amsg = new AcquireId("ACQUIRE_ID");
@@ -141,7 +141,7 @@ void IdNode::handleMessage(cMessage *msg)
 	else if (msg->getName() && !strcmp(msg->getName(), CHECK_HEARTBEAT_MSG))
 	{
 		HeartControl *ctrl = (HeartControl*)msg->getControlInfo();
-		if (hasId && ctrl->seq == prevBeatSeq)
+		if (hasId() && ctrl->seq == prevBeatSeq)
 		{
 			// we've lost contact :'(
 			// drop from the network...
@@ -157,123 +157,75 @@ void IdNode::handleMessage(cMessage *msg)
 		}
 		delete msg;
 	}
-	else
+}
+CommonNode::HandlingState IdNode::handleUncommonMessage(cMessage *msg)
+{
+	CommonNode::HandlingState state = HandlingStates::UNHANDLED;
+	AcsMessage *tmsg = check_and_cast<AcsMessage*>(msg);
+
+	switch (tmsg->getMsgType())
 	{
-		bool broadcast = true;
-		AcsMessage *tmsg = check_and_cast<AcsMessage*>(msg);
-
-		// abort if we've already touched this msg
-		if (hasId) {
-			for (size_t i = 0; i < tmsg->getPath().size(); ++i)
-			{
-				if (tmsg->getPath()[i] == *id)
-				{
-					delete msg;
-					return;
-				}
-			}
-		}
-
-		switch (tmsg->getMsgType())
+	case ID_ASSIGNMENT:
+		// if we have an id, don't check if the message is for this node
+		if (!hasId() && ((IdAssignment*)tmsg)->getMessageId() == this->acquireMessageId)
 		{
-		case PING:
-			// ignore ping if we're not associated
-			if (hasId)
+			if (id != NULL)
+				delete id;
+			// remember the id we just obtained
+			id = new Identifier(((IdAssignment*)tmsg)->getId().id);
+			setHasId(true);
+			log() << "got id \"" << id->id << "\"\n";
+			// fetch heart beat information
+			prevBeatSeq = ((IdAssignment*)tmsg)->getLastHeartBeat();
+			beatInterval = ((IdAssignment*)tmsg)->getBeatInterval();
+			beatInterval = beatInterval+beatInterval/4;
+			// BEGIN: new in task 3
+			// schedule heartbeat check
+			prevBeatTime = simTime();
+			scheduleHeartBeatCheck();
+			// END: new in task 3
+
+			// schedule disassociation
+			cMessage* lmsg = dropout = new cMessage(DO_LEAVE_MSG);
+			simtime_t delay = getRNG(0)->intRand(maxKeepIdTime-minKeepIdTime)+minKeepIdTime;
+			scheduleAt(simTime()+delay,lmsg);
+			state = HandlingStates::HANDLED;
+		} else if (hasId()) {
+			state = HandlingStates::HANDLED | HandlingStates::FORWARD;
+		}
+		break;
+	// BEGIN: introduced in task 3
+	case HEARTBEAT:
+		state = HandlingStates::HANDLED;
+		if (hasId())
+		{
+			HeartBeat *beat = (HeartBeat*)msg;
+			if (beat->getSeq() == prevBeatSeq+1)
 			{
-				if (((Ping*)tmsg)->getId().id == id->id)
-				{
-					// we were pinged. respond with pong :D
-					Pong* pong = new Pong("PONG");
-					pong->setId(id->id);
-					cGate* gate = msg->getArrivalGate();
-					send(pong,"gate$o",gate->getIndex());
-					broadcast = false;
-				}
-			}
-			break;
-		case ID_ASSIGNMENT:
-			// if we have an id, don't check if the message is for this node
-			if (!hasId && ((IdAssignment*)tmsg)->getMessageId() == this->acquireMessageId)
-			{
-				if (id != NULL)
-					delete id;
-				// remember the id we just obtained
-				id = new Identifier(((IdAssignment*)tmsg)->getId().id);
-				setHasId(true);
-				log() << "got id \"" << id->id << "\"\n";
-				// fetch heart beat information
-				prevBeatSeq = ((IdAssignment*)tmsg)->getLastHeartBeat();
-				beatInterval = ((IdAssignment*)tmsg)->getBeatInterval();
-				beatInterval = beatInterval+beatInterval/4;
-				// BEGIN: new in task 3
-				// schedule heartbeat check
+				// everything is working as it should
+				prevBeatSeq++;
 				prevBeatTime = simTime();
 				scheduleHeartBeatCheck();
-				// END: new in task 3
-
-				// schedule disassociation
-				cMessage* lmsg = dropout = new cMessage(DO_LEAVE_MSG);
-				simtime_t delay = getRNG(0)->intRand(maxKeepIdTime-minKeepIdTime)+minKeepIdTime;
-				scheduleAt(simTime()+delay,lmsg);
-				broadcast = false;
+				state |= HandlingStates::FORWARD;
 			}
-			break;
-		// BEGIN: introduced in task 3
-		case HEARTBEAT:
-			if (hasId)
+			else if (beat->getSeq() < prevBeatSeq+1)
 			{
-				HeartBeat *beat = (HeartBeat*)msg;
-				if (beat->getSeq() == prevBeatSeq+1)
-				{
-					// everything is working as it should
-					prevBeatSeq++;
-					prevBeatTime = simTime();
-					scheduleHeartBeatCheck();
-				}
-				else if (beat->getSeq() < prevBeatSeq+1)
-				{
-					// seems to be an old one - remove it from circulation
-					broadcast = false;
-				}
-				else //if (beat->getSeq() > prevBeatSeq)
-				{
-					// we normally shouldn't hit this code, but one never knows...
-					// especially while debugging :D
-					log() << "We have missed a beat. Disassociating...\n";
-					setHasId(false);
-					broadcast = false;
-				}
+				// seems to be an old one - remove it from circulation (by not setting FORWARD)
 			}
-			break;
-		// END: introduced in task 3
-		case ACQUIRE_ID:
-		case PONG:
-			// ignore & relay
-			break;
-		default:
-			log() << "Got a message of unknown type \"" << tmsg->getMsgType() << "\". Ignoring...\n";
-		}
-
-		// broadcast code
-		if (hasId && broadcast)
-		{
-			// send a copy of the message on all gates except for the input gate of the message
-			int idx = tmsg->getArrivalGate()->getIndex();
-			tmsg->getPath().push_back(*id);
-			for (int i = 0; i < gateSize("gate"); ++i) {
-				if (i == idx) continue;
-				AcsMessage *m = copyMessage(tmsg);
-				if (m)
-				{
-					send(m, "gate$o",i);
-				}
+			else //if (beat->getSeq() > prevBeatSeq)
+			{
+				// we normally shouldn't hit this code, but one never knows...
+				// especially while debugging :D
+				log() << "We have missed a beat. Disassociating...\n";
+				setHasId(false);
 			}
 		}
-
-		// clean up
-		if (msg)
-			delete msg;
+		break;
+	// END: introduced in task 3
+//	default:
+//		log() << "Got a message of unknown type \"" << tmsg->getMsgType() << "\". Ignoring...\n";
 	}
+	return state;
 }
 
 /**
