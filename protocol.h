@@ -5,6 +5,7 @@
 #include <vector>
 #include <omnetpp.h>
 #include <sstream>
+#include <boost/shared_ptr.hpp>
 
 /**
  * Stupid wrapper class around identifiers. Initially implemented to allow using __int128,
@@ -19,11 +20,27 @@ struct Identifier : public cObject
 	virtual std::string detailedInfo() const { return info(); }
 	t1id_t id;
 	bool operator ==(const Identifier& other) const { return other.id == id; }
+	bool operator <(const Identifier& other) const { return id < other.id; }
+	bool operator >(const Identifier& other) const { return id > other.id; }
+	bool operator <=(const Identifier& other) const { return id <= other.id; }
+	bool operator >=(const Identifier& other) const { return id >= other.id; }
+	operator t1id_t() const { return id; }
 };
 
 /**
  * Typedef to allow us to use vectors in .msg files
  */
 typedef std::vector<Identifier> PacketPath;
+
+class Payload {
+public:
+	virtual int getPayloadType() = 0;
+};
+
+//typedef boost::shared_ptr<Payload> ObjectPtr; // this fails because of an ambiguous ostream overload :(
+
+// so yeah, this introduces a memory leak. I don't care anymore at this point, only want to get the exercise done. :(
+// TODO: ask what the best way of embedding a payload in packets would be.
+typedef Payload* ObjectPtr;
 
 #endif //_TASK1_PROTOCOL_
