@@ -19,6 +19,9 @@ enum MessageType {
     ACQUIRE_ID = 3;
     ID_ASSIGNMENT = 4;
     HEARTBEAT = 5;
+    TICTOC = 6;
+    HELLO = 7;
+    ROUTABLE = 8;
 }
 
 cplusplus {{
@@ -26,6 +29,7 @@ cplusplus {{
 }}
 struct Identifier;
 struct PacketPath;
+struct ObjectPtr;
 
 message AcsMessage {
     int msgType;
@@ -60,4 +64,21 @@ message IdAssignment extends AcsMessage {
 message HeartBeat extends AcsMessage {
     msgType = HEARTBEAT;
     long seq;
+}
+
+message TicToc extends AcsMessage {
+    msgType = TICTOC;
+    simtime_t start;
+}
+
+message HelloMessage extends AcsMessage {
+    msgType = HELLO;
+    long messageId;
+}
+
+message RoutableMessage extends AcsMessage {
+    msgType = ROUTABLE;
+    Identifier source;
+    Identifier target;
+    ObjectPtr payload;
 }

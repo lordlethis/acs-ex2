@@ -24,7 +24,7 @@ public:
 protected:
     // The following redefined virtual function holds the algorithm.
     virtual void initialize();
-    virtual void handleSelfMessage(cMessage *msg);
+    virtual bool handleSelfMessage(cMessage *msg);
     virtual HandlingState handleUncommonMessage(cMessage *msg);
     virtual bool hasId() { return true; }
     virtual Identifier* getId() { return id; }

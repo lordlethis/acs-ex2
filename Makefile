@@ -126,6 +126,7 @@ depend:
 $O/commonnode.o: commonnode.cpp \
 	protocol_m.h \
 	protocol.h \
+	routingtable.h \
 	types.h \
 	commonnode.h
 $O/idserver.o: idserver.cpp \
@@ -133,10 +134,12 @@ $O/idserver.o: idserver.cpp \
 	protocol_m.h \
 	protocol.h \
 	types.h \
+	routingtable.h \
 	commonnode.h
 $O/node.o: node.cpp \
 	protocol_m.h \
 	protocol.h \
+	routingtable.h \
 	types.h \
 	node.h \
 	commonnode.h

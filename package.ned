@@ -2,6 +2,7 @@ package exercise2;
 
 @license(LGPL);
 
+
 simple IdServer
 {
     parameters:
@@ -11,7 +12,9 @@ simple IdServer
         int range_start = default(0);
         int range_end = default(2147483647);
         int pulse_rate = default(1000);
-    gates:
+        int helloInterval = default(5000);
+        int routingTableTimeout = default(6000);
+        gates:
         inout gate[];
 }
 
@@ -25,7 +28,9 @@ simple IdNode
         int maxKeepIdTime = default(40000); //
         int rejoinDelay = default(5000); // 
         int retryTime = default(10000); //
-    gates:
+        int helloInterval = default(5000);
+        int routingTableTimeout = default(6000);
+        gates:
         inout gate[];
 }
 

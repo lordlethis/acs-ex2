@@ -43,6 +43,7 @@ Define_Module(IdNode);
 
 void IdNode::initialize()
 {
+	CommonNode::initialize();
 	id = NULL;
 	_hasId = false;
 	// make stuff observable in UI
@@ -99,8 +100,10 @@ void IdNode::scheduleHeartBeatCheck()
 	scheduleAt(prevBeatTime+beatInterval, msg);
 }
 
-void IdNode::handleSelfMessage(cMessage *msg)
+bool IdNode::handleSelfMessage(cMessage *msg)
 {
+	if (CommonNode::handleSelfMessage(msg))
+		return true;
 	// check whether we got a self-message telling us to join the network
 	if (msg->getName() != NULL && !strcmp(msg->getName(),DO_JOIN_MSG))
 	{
@@ -124,6 +127,7 @@ void IdNode::handleSelfMessage(cMessage *msg)
 			scheduleAt(simTime()+retryTime,dmsg);
 		}
 		delete msg;
+		return true;
 	}
 	// check if we got a self-message telling us to drop out of the network (because we can)
 	else if (msg->getName() && !strcmp(msg->getName(), DO_LEAVE_MSG))
@@ -136,6 +140,7 @@ void IdNode::handleSelfMessage(cMessage *msg)
 		simtime_t delay = rejoinDelay;
 		scheduleAt(simTime()+delay,jmsg);
 		delete msg;
+		return true;
 	}
 	// check if we got a self-message telling us to check the heart beat reception
 	else if (msg->getName() && !strcmp(msg->getName(), CHECK_HEARTBEAT_MSG))
@@ -156,7 +161,9 @@ void IdNode::handleSelfMessage(cMessage *msg)
 			log() << "Dropped out of the network...";
 		}
 		delete msg;
+		return true;
 	}
+	return false;
 }
 CommonNode::HandlingState IdNode::handleUncommonMessage(cMessage *msg)
 {

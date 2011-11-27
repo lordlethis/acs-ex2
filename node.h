@@ -38,7 +38,7 @@ protected:
   virtual Identifier* getId() { return id; }
   virtual void scheduleHeartBeatCheck();
   virtual HandlingState handleUncommonMessage(cMessage *msg);
-  virtual void handleSelfMessage(cMessage *msg);
+  virtual bool handleSelfMessage(cMessage *msg);
 private:
   cEnvir& log();
   bool _hasId;

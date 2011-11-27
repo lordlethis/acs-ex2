@@ -17,6 +17,7 @@ public:
 
 void IdServer::initialize()
 {
+	CommonNode::initialize();
 	// read params from ned/ini file
 	timeout = par("timeout");
 	rangeStart = par("range_start");
@@ -33,6 +34,7 @@ void IdServer::initialize()
 	WATCH(pulseRate);
 	EV << "Task2Server initialized\n";
 	lastBeat = simTime()+pulseRate;
+	startHelloProtocol();
 	scheduleAt(lastBeat, &fireBeat);
 }
 
@@ -42,8 +44,10 @@ cEnvir& IdServer::log()
 	return (EV << "(" << getName()  << ") ");
 }
 
-void IdServer::handleSelfMessage(cMessage *msg)
+bool IdServer::handleSelfMessage(cMessage *msg)
 {
+	if (CommonNode::handleSelfMessage(msg))
+		return true;
 	// check if we got a delay message
 	// delay messages are badly named, but upon reception, we check if
 	// we received a PONG for the ping of some id...
@@ -69,6 +73,7 @@ void IdServer::handleSelfMessage(cMessage *msg)
 			delete amsg;
 		}
 		delete msg;
+		return true;
 	}
 	else if (msg->getName() != NULL && !strcmp(msg->getName(),DO_PULSE_MSG))
 	{
@@ -83,8 +88,9 @@ void IdServer::handleSelfMessage(cMessage *msg)
 		++heartBeat;
 		lastBeat += pulseRate;
 		scheduleAt(lastBeat, &fireBeat);
+		return true;
 	}
-
+	return false;
 }
 
 CommonNode::HandlingState IdServer::handleUncommonMessage(cMessage *msg)
