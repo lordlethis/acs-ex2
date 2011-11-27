@@ -41,6 +41,7 @@ protected:
 	 * This method is called from within #handleMessage(cMessage*)
 	 */
 	virtual bool handleSelfMessage(cMessage *msg);
+	virtual HandlingState handleRoutableMessage(RoutableMessage *msg);
 	virtual void initialize();
 	virtual Identifier* getId() = 0;
 	virtual bool hasId() = 0;
@@ -53,6 +54,7 @@ private:
 	long helloId;
 	simtime_t helloInterval;
 	simtime_t routingTableTimeout;
+	long ticTocDuration;
 };
 
 #endif /* COMMONNODE_H_ */

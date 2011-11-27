@@ -192,10 +192,15 @@ CommonNode::HandlingState IdNode::handleUncommonMessage(cMessage *msg)
 			scheduleHeartBeatCheck();
 			// END: new in task 3
 
+			startHelloProtocol();
+
 			// schedule disassociation
-			cMessage* lmsg = dropout = new cMessage(DO_LEAVE_MSG);
-			simtime_t delay = getRNG(0)->intRand(maxKeepIdTime-minKeepIdTime)+minKeepIdTime;
-			scheduleAt(simTime()+delay,lmsg);
+			if (maxKeepIdTime > 0)
+			{
+				cMessage* lmsg = dropout = new cMessage(DO_LEAVE_MSG);
+				simtime_t delay = getRNG(0)->intRand(maxKeepIdTime-minKeepIdTime)+minKeepIdTime;
+				scheduleAt(simTime()+delay,lmsg);
+			}
 			state = HandlingStates::HANDLED;
 		} else if (hasId()) {
 			state = HandlingStates::HANDLED | HandlingStates::FORWARD;

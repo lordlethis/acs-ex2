@@ -37,6 +37,22 @@ public:
 	virtual int getPayloadType() = 0;
 };
 
+class TicToc : public Payload {
+public:
+	TicToc(simtime_t _endTime) : endTime(_endTime) {}
+	TicToc(const TicToc& other) : endTime(other.endTime) {}
+	virtual int getPayloadType() { return 0; }
+	simtime_t endTime;
+};
+
+class InitiateTicToc : public Payload {
+public:
+	InitiateTicToc(const Identifier& dst) : target(dst) {}
+	InitiateTicToc() {}
+	virtual int getPayloadType() { return 1; }
+	Identifier target;
+};
+
 //typedef boost::shared_ptr<Payload> ObjectPtr; // this fails because of an ambiguous ostream overload :(
 
 // so yeah, this introduces a memory leak. I don't care anymore at this point, only want to get the exercise done. :(

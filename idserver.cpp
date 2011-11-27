@@ -23,6 +23,8 @@ void IdServer::initialize()
 	rangeStart = par("range_start");
 	rangeEnd = par("range_end");
 	pulseRate = par("pulse_rate");
+	ticTocStart = par("ticTocStartTime");
+	ticTocInterval = par("ticTocInterval");
 	// take the first id of the range for ourselves
 	id = new Identifier(rangeStart++);
 	nextId = rangeStart;
@@ -36,6 +38,7 @@ void IdServer::initialize()
 	lastBeat = simTime()+pulseRate;
 	startHelloProtocol();
 	scheduleAt(lastBeat, &fireBeat);
+	scheduleAt(simTime()+ticTocStart,&ticTocInitiation);
 }
 
 
@@ -48,10 +51,33 @@ bool IdServer::handleSelfMessage(cMessage *msg)
 {
 	if (CommonNode::handleSelfMessage(msg))
 		return true;
+
+	if (msg == &ticTocInitiation)
+	{
+		scheduleAt(simTime()+ticTocInterval, &ticTocInitiation);
+		RoutableMessage* rmsg = new RoutableMessage;
+		rmsg->getPath().push_back(*getId());
+		t1id_t src = getRNG(0)->intRand(nextId);
+		t1id_t dst = src;
+		while (src == dst)
+			dst = getRNG(0)->intRand(nextId);
+		if (src == getId()->id)
+		{
+			t1id_t tmp = src;
+			src=dst;
+			dst=tmp;
+		}
+		rmsg->setTarget(Identifier(src));
+		rmsg->setSource(*getId());
+		rmsg->setPayload(new InitiateTicToc(Identifier(dst)));
+		EV << "Sending tic toc initiation packet for communication between " << src << " <-> " << dst;
+		routeMessage(rmsg);
+		return true;
+	}
 	// check if we got a delay message
 	// delay messages are badly named, but upon reception, we check if
 	// we received a PONG for the ping of some id...
-	if (msg->getName() != NULL && !strcmp(msg->getName(),DELAY_MESSAGE))
+	else if (msg->getName() != NULL && !strcmp(msg->getName(),DELAY_MESSAGE))
 	{
 		t1id_t _id = ((IdControl*)(msg->getControlInfo()))->id;
 		log() << "Handling delay msg for id \"" << _id << "\"...\n";

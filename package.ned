@@ -12,8 +12,11 @@ simple IdServer
         int range_start = default(0);
         int range_end = default(2147483647);
         int pulse_rate = default(1000);
-        int helloInterval = default(5000);
+        int helloInterval = default(5500);
         int routingTableTimeout = default(6000);
+        int ticTocInterval = default(60000);
+        int ticTocStartTime = default(180000);
+        int ticTocDuration = default(180000);
         gates:
         inout gate[];
 }
@@ -25,11 +28,12 @@ simple IdNode
         @display("p=50,50,ring,150,150");
         int initialDelay = default(-1); // when the node will join the net (-1 means random time)
         int minKeepIdTime = default(30000); // minKeepIdTime
-        int maxKeepIdTime = default(40000); //
+        int maxKeepIdTime = default(0); //
         int rejoinDelay = default(5000); // 
         int retryTime = default(10000); //
         int helloInterval = default(5000);
         int routingTableTimeout = default(6000);
+        int ticTocDuration = default(180000);
         gates:
         inout gate[];
 }

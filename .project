@@ -33,7 +33,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildArguments</key>
-					<value>MODE=debug CONFIGNAME=${ConfigName} CFLAGS=&quot;-std=c++0x&quot;</value>
+					<value>MODE=debug CONFIGNAME=${ConfigName}</value>
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.buildCommand</key>
@@ -73,7 +73,7 @@
 				</dictionary>
 				<dictionary>
 					<key>org.eclipse.cdt.make.core.useDefaultBuildCmd</key>
-					<value>false</value>
+					<value>true</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>

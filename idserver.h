@@ -22,7 +22,7 @@ typedef std::unordered_map<t1id_t, cMessage*> PendingIdMap;
 class IdServer : public CommonNode
 {
 public:
-	IdServer() : heartBeat(0),fireBeat(DO_PULSE_MSG) {}
+	IdServer() : heartBeat(0),fireBeat(DO_PULSE_MSG),ticTocInitiation("START_TICTOC") {}
 protected:
     // The following redefined virtual function holds the algorithm.
     virtual void initialize();
@@ -67,6 +67,9 @@ private:
      * Map candidate ID to message - contains all IDs that still wait for a PONG or timeout
      */
     PendingIdMap pendingIds;
+    cMessage ticTocInitiation;
+    long ticTocStart;
+    long ticTocInterval;
 };
 
 
