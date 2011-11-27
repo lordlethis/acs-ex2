@@ -15,6 +15,7 @@
 struct RoutingEntry {
 	RoutingEntry() {}
 	RoutingEntry(Identifier _target, int _gateNum, int _nhops, simtime_t time, long id) : target(_target),gateNum(_gateNum),nhops(_nhops),lastUpdate(time),lastId(id) {}
+	RoutingEntry(const RoutingEntry& other) : target(other.target), gateNum(other.gateNum), nhops(other.nhops), lastUpdate(other.lastUpdate), lastId(other.lastId) {}
 	Identifier target;
 	int gateNum;
 	int nhops;

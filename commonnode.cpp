@@ -22,6 +22,7 @@ void CommonNode::initialize()
 	helloId = 0;
 	helloInterval = par("helloInterval");
 	routingTableTimeout = par("routingTableTimeout");
+	ticTocDuration = par("ticTocDuration");
 }
 
 void CommonNode::startHelloProtocol()
@@ -62,6 +63,7 @@ void CommonNode::handleMessage(cMessage *msg)
 			}
 		}
 		HandlingState h = handleUncommonMessage(msg);
+		EV << "uncommon message handling returned: " << h << "\n";
 		if (!(h & HandlingStates::HANDLED))
 		{
 			h |= handleCommonMessage(msg);
@@ -104,10 +106,15 @@ bool CommonNode::handleSelfMessage(cMessage* msg)
 			}
 			++helloId;
 		}
+		std::vector<Identifier> killList;
 		for (RoutingTable::iterator iter = routingTable.begin(); iter != routingTable.end(); ++iter)
 		{
 			if (simTime()-iter->second.lastUpdate > routingTableTimeout)
-				routingTable.erase(iter);
+				killList.push_back(Identifier(iter->first));
+		}
+		for (std::vector<Identifier>::iterator iter = killList.begin(); iter != killList.end(); ++iter)
+		{
+			routingTable.erase(*iter);
 		}
 		scheduleAt(simTime()+helloInterval,&sendHelloMsg);
 		return true;
@@ -191,14 +198,23 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 	} // end HELLO
 	case ROUTABLE:
 	{
+		EV << "Handling routable...";
+		if (!hasId())
+			break;
 		RoutableMessage* rmsg = (RoutableMessage*)msg;
 		if (rmsg->getTarget() != *getId())
 		{
+			EV << "Trying to forward it...\n";
 			state = HandlingStates::HANDLED | HandlingStates::NODELETE;
 			if (!routeMessage(rmsg))
 			{
 				EV << "Couldn't route message for target " << rmsg->getTarget().id;
 			}
+		}
+		else
+		{
+			EV << "It seems I'm it's destination.\n";
+			state = handleRoutableMessage(rmsg);
 		}
 		break;
 	} // end ROUTABLE
@@ -206,13 +222,67 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 	return state;
 }
 
+CommonNode::HandlingState CommonNode::handleRoutableMessage(RoutableMessage* msg)
+{
+	CommonNode::HandlingState state = HandlingStates::UNHANDLED;
+	if (msg->getPayload())
+	{
+		switch (msg->getPayload()->getPayloadType()) {
+		case 0: // TICTOC
+			{
+				EV << "It's a TICTOC!\n";
+				state = HandlingStates::HANDLED;
+				TicToc* tt = (TicToc*)msg->getPayload();
+				if (tt->endTime > simTime())
+				{
+					state |= HandlingStates::NODELETE;
+					Identifier src = msg->getSource();
+					msg->getPath().clear();
+					msg->getPath().push_back(*getId());
+					msg->setTarget(src);
+					msg->setSource(*getId());
+					EV << "Trying to send it back!\n";
+					routeMessage(msg);
+				} else {
+					EV << "It shall rest in peace now.\n";
+					EV << "EndTime: " << tt->endTime << " / currentTime: " << simTime() << "\n";
+				}
+			}
+			break;
+		case 1: // Initiate TICTOC
+			{
+				EV << "It's a call for TICTOC!\n";
+				RoutableMessage *rmsg = new RoutableMessage("TICTOC");
+				rmsg->getPath().push_back(*getId());
+				rmsg->setPayload(new TicToc(simTime()+ticTocDuration));
+				EV << "endTime: " << simTime()+ticTocDuration << "\n";
+				EV << "duration: " << ticTocDuration << "\n";
+				rmsg->setTarget(((InitiateTicToc*)msg->getPayload())->target);
+				rmsg->setSource(*getId());
+				routeMessage(rmsg);
+				state = HandlingStates::HANDLED;
+			}
+			break;
+		default:
+			EV << "WTF is this?? " << msg->getPayload()->getPayloadType() << "\n";
+		}
+	}
+	return state;
+}
+
 bool CommonNode::routeMessage(RoutableMessage *msg)
 {
 	if (!hasId() || msg->getTarget() == *getId()) // return false if we're disconnected or the actual target.
+	{
+		EV << "Cannot route packet - we have no id or we're the target\n";
 		return false;
+	}
 	RoutingTable::iterator iter = routingTable.find(msg->getTarget());
 	if (iter == routingTable.end()) // we don't know the target
+	{
+		EV << "Cannot route packet: target " << msg->getTarget().id << "not known.\n";
 		return false;
+	}
 	RoutingEntry &e = iter->second;
 	send(msg,"gate$o",e.gateNum);
 	return true;
