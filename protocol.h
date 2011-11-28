@@ -5,7 +5,6 @@
 #include <vector>
 #include <omnetpp.h>
 #include <sstream>
-#include <boost/shared_ptr.hpp>
 
 /**
  * Stupid wrapper class around identifiers. Initially implemented to allow using __int128,
@@ -56,7 +55,7 @@ public:
 //typedef boost::shared_ptr<Payload> ObjectPtr; // this fails because of an ambiguous ostream overload :(
 
 // so yeah, this introduces a memory leak. I don't care anymore at this point, only want to get the exercise done. :(
-// TODO: ask what the best way of embedding a payload in packets would be.
+// TODO: ask what the best way of embedding a payload in packets would be...
 typedef Payload* ObjectPtr;
 
 #endif //_TASK1_PROTOCOL_
