@@ -5,6 +5,7 @@
 #include <vector>
 #include <omnetpp.h>
 #include <sstream>
+#include <boost/shared_ptr.hpp>
 
 /**
  * Stupid wrapper class around identifiers. Initially implemented to allow using __int128,
