@@ -10,14 +10,14 @@
 
 #include <omnetpp.h>
 #include "commonnode.h"
-#include <unordered_map>
+#include <boost/unordered_map.hpp>
 #include "types.h"
 
 #define DO_PULSE_MSG "BLOODFLOW"
 
 class Identifier;
 
-typedef std::unordered_map<t1id_t, cMessage*> PendingIdMap;
+typedef boost::unordered_map<t1id_t, cMessage*> PendingIdMap;
 
 class IdServer : public CommonNode
 {
