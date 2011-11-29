@@ -108,9 +108,9 @@ void IdNode::handleSelfMessage(cMessage *msg)
 		{
 			// prepare an AcquireId message and send it out
 			AcquireId *amsg = new AcquireId("ACQUIRE_ID");
-			if (id != NULL)
+			if (id != NULL)		// if it has old ID meaning that it dropped out
 			{
-				amsg->setId(Identifier(id->id));
+				amsg->setId(Identifier(id->id));	//request for the specific id that node had before
 				amsg->setHasId(true);
 				id = NULL;
 			}
