@@ -8,7 +8,7 @@
 #ifndef ROUTINGTABLE_H_
 #define ROUTINGTABLE_H_
 
-#include <unordered_map>
+#include <boost/unordered_map.hpp>
 #include "protocol.h"
 #include "protocol.h"
 
@@ -23,7 +23,7 @@ struct RoutingEntry {
 	long lastId;
 };
 
-typedef std::unordered_map<t1id_t,RoutingEntry> RoutingTable;
+typedef boost::unordered_map<t1id_t,RoutingEntry> RoutingTable;
 
 
 #endif /* ROUTINGTABLE_H_ */
