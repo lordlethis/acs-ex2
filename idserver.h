@@ -10,12 +10,14 @@
 
 #include <omnetpp.h>
 #include "commonnode.h"
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
 #include "types.h"
 
 #define DO_PULSE_MSG "BLOODFLOW"
 
 class Identifier;
+
+typedef std::unordered_map<t1id_t, cMessage*> PendingIdMap;
 
 class IdServer : public CommonNode
 {
@@ -64,7 +66,7 @@ private:
     /**
      * Map candidate ID to message - contains all IDs that still wait for a PONG or timeout
      */
-    boost::unordered_map<t1id_t, cMessage*> pendingIds;
+    PendingIdMap pendingIds;
 };
 
 

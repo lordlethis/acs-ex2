@@ -111,7 +111,7 @@ CommonNode::HandlingState IdServer::handleUncommonMessage(cMessage *msg)
 			t1id_t _id;
 			AcquireId* amsg = check_and_cast<AcquireId*>(msg);
 			// did we get this request before? if so, ignore it
-			for (boost::unordered_map<t1id_t, cMessage*>::iterator iter = pendingIds.begin(); iter != pendingIds.end(); ++iter)
+			for (PendingIdMap::iterator iter = pendingIds.begin(); iter != pendingIds.end(); ++iter)
 			{
 				AcquireId* a = dynamic_cast<AcquireId*>(iter->second);
 				if (a && a->getMessageId() == amsg->getMessageId())
