@@ -1,48 +1,96 @@
 package exercise2;
 
+import ned.IdealChannel;
+import ned.IBidirectionalChannel;
+
+
 @license(LGPL);
 
-simple IdServer
+simple LandmarkNode
 {
     parameters:
-        @display("i=block/routing,gold");
-        @display("p=200,200");
-        int timeout = default(2000);
-        int range_start = default(0);
-        int range_end = default(2147483647);
-        int pulse_rate = default(1000);
+        @display("i=block/routing,green");
+        int landmarkId;
     gates:
         inout gate[];
 }
 
-simple IdNode
+simple NetworkNode
 {
     parameters:
         @display("i=block/routing,gray");
-        @display("p=50,50,ring,150,150");
-        int initialDelay = default(-1); // when the node will join the net (-1 means random time)
-        int minKeepIdTime = default(30000); // minKeepIdTime
-        int maxKeepIdTime = default(40000); //
-        int rejoinDelay = default(5000); // 
-        int retryTime = default(10000); //
     gates:
         inout gate[];
 }
 
+//
+// TODO documentation
+//
+// @author kei
+//
 network Network
 {
-    parameters:
-        int numClients @prompt("Number of clients") = default(4);
-	submodules:
-		server: IdServer;
-        clients[numClients+3]: IdNode;
-    connections allowunconnected:
-        for i=0..numClients-1 {
-            server.gate++ <--> {  delay = 10ms; } <--> clients[i].gate++;
-            clients[i].gate++ <--> { delay = 10ms; } <--> clients[i+1].gate++;
+    @display("bgb=744,602");
+    submodules:
+        lm1: LandmarkNode {
+            @display("p=115,106");
+            landmarkId = 1;
         }
-        clients[numClients].gate++ <--> { delay = 10ms; } <--> clients[0].gate++;
-        clients[numClients+1].gate++ <--> { delay = 10ms; } <--> clients[numClients].gate++;
-        clients[numClients+2].gate++ <--> { delay = 10ms; } <--> clients[numClients+1].gate++;
-        clients[numClients+2].gate++ <--> { delay = 10ms; } <--> clients[0].gate++;
+        lm2: LandmarkNode {
+            @display("p=373,221");
+            landmarkId = 2;
+        }
+        lm3: LandmarkNode {
+            @display("p=379,42");
+            landmarkId = 3;
+        }
+        networkNode: NetworkNode {
+            @display("p=102,234");
+        }
+        networkNode1: NetworkNode {
+            @display("p=261,75");
+        }
+        networkNode2: NetworkNode {
+            @display("p=215,188");
+        }
+        networkNode3: NetworkNode {
+            @display("p=254,311");
+        }
+        networkNode4: NetworkNode {
+            @display("p=128,333");
+        }
+        networkNode5: NetworkNode {
+            @display("p=370,391");
+        }
+        networkNode6: NetworkNode {
+            @display("p=241,419");
+        }
+        networkNode7: NetworkNode {
+            @display("p=474,133");
+        }
+        networkNode8: NetworkNode {
+            @display("p=566,205");
+        }
+        networkNode9: NetworkNode {
+            @display("p=475,283");
+        }
+    connections:
+        lm1.gate++ <--> IdealChannel <--> networkNode1.gate++;
+        networkNode1.gate++ <--> IdealChannel <--> lm2.gate++;
+        networkNode1.gate++ <--> IdealChannel <--> lm3.gate++;
+        lm3.gate++ <--> IdealChannel <--> networkNode7.gate++;
+        networkNode7.gate++ <--> IdealChannel <--> lm2.gate++;
+        networkNode7.gate++ <--> IdealChannel <--> networkNode9.gate++;
+        networkNode9.gate++ <--> IdealChannel <--> lm2.gate++;
+        networkNode9.gate++ <--> IdealChannel <--> networkNode8.gate++;
+        lm2.gate++ <--> IdealChannel <--> networkNode3.gate++;
+        networkNode2.gate++ <--> IdealChannel <--> networkNode3.gate++;
+        networkNode2.gate++ <--> IdealChannel <--> networkNode5.gate++;
+        lm1.gate++ <--> IdealChannel <--> networkNode.gate++;
+        networkNode.gate++ <--> IdealChannel <--> networkNode2.gate++;
+        networkNode3.gate++ <--> IdealChannel <--> networkNode6.gate++;
+        networkNode6.gate++ <--> IdealChannel <--> networkNode5.gate++;
+        networkNode3.gate++ <--> IdealChannel <--> networkNode4.gate++;
+        networkNode2.gate++ <--> IdealChannel <--> networkNode4.gate++;
 }
+

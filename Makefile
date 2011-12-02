@@ -39,7 +39,7 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cpp and .msg files
-OBJS = $O/idserver.o $O/commonnode.o $O/node.o $O/protocol_m.o
+OBJS = $O/networknode.o $O/landmarknode.o $O/commonnode.o $O/protocol_m.o
 
 # Message files
 MSGFILES = \
@@ -123,25 +123,20 @@ depend:
 	$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cpp images/*.cpp images/abstract/*.cpp images/background/*.cpp images/block/*.cpp images/device/*.cpp images/maps/*.cpp images/misc/*.cpp images/msg/*.cpp images/old/*.cpp images/status/*.cpp
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
+$O/networknode.o: networknode.cpp \
+	protocol.h \
+	networknode.h \
+	commonnode.h
 $O/commonnode.o: commonnode.cpp \
 	protocol_m.h \
 	protocol.h \
-	types.h \
 	commonnode.h
-$O/idserver.o: idserver.cpp \
-	idserver.h \
+$O/landmarknode.o: landmarknode.cpp \
+	landmarknode.h \
 	protocol_m.h \
 	protocol.h \
-	types.h \
-	commonnode.h
-$O/node.o: node.cpp \
-	protocol_m.h \
-	protocol.h \
-	types.h \
-	node.h \
 	commonnode.h
 $O/protocol_m.o: protocol_m.cpp \
 	protocol_m.h \
-	protocol.h \
-	types.h
+	protocol.h
 

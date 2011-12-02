@@ -14,11 +14,9 @@
 // 
 
 enum MessageType {
-    PING = 1;
-    PONG = 2;
-    ACQUIRE_ID = 3;
-    ID_ASSIGNMENT = 4;
-    HEARTBEAT = 5;
+    LM_BROADCAST = 1;
+    HELLO = 2,
+    ROUTABLE = 3;
 }
 
 cplusplus {{
@@ -29,35 +27,22 @@ struct PacketPath;
 
 message AcsMessage {
     int msgType;
+}
+
+message LandmarkBroadcast extends AcsMessage {
+    msgType = LM_BROADCAST;
+    int landmarkId;
+    int hopCount;
+}
+
+message HelloMessage extends AcsMessage {
+    msgType = HELLO;
+    Identifier source;
+}
+
+message RoutableMessage extends AcsMessage {
+    msgType = ROUTABLE;
+    Identifier source;
+    Identifier target;
     PacketPath path;
-}
-
-message Ping extends AcsMessage {
-    msgType = PING;
-    Identifier id;
-}
-message Pong extends AcsMessage {
-    msgType = PONG;
-	Identifier id;
-}
-
-message AcquireId extends AcsMessage {
-    msgType = ACQUIRE_ID;
-    Identifier id;
-    bool hasId;
-    long messageId;
-}
-
-message IdAssignment extends AcsMessage {
-    msgType = ID_ASSIGNMENT;
-    Identifier id;
-    long messageId;
-    long lastHeartBeat;
-    int beatInterval;
-}
-
-// added in task 3
-message HeartBeat extends AcsMessage {
-    msgType = HEARTBEAT;
-    long seq;
 }
