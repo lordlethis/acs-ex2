@@ -171,10 +171,9 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 			}
 		}
 		state = HandlingStates::FORWARD | HandlingStates::HANDLED;
-		int hops = 0;
+		int hops = amsg->getPath().size();
 		for (PacketPath::iterator iter = amsg->getPath().begin(); iter != amsg->getPath().end(); ++iter)
 		{
-			hops++; // starting at one is intended, despite initializing with zero above.
 			if (routingTable.find(*iter) == routingTable.end())
 			{
 				// no entry yet - insert one
@@ -193,6 +192,7 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 					routingTable[*iter].lastUpdate = simTime();
 				}
 			}
+			hops--;
 		}
 		break;
 	} // end HELLO
