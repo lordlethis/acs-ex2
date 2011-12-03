@@ -55,11 +55,11 @@ private:
   /** did we already receive a heart beat earlier on? */
   bool firstBeat;
   /** the interval in which the server is firing heart beats */
-  int beatInterval;
+  double beatInterval;
   Identifier* id;
   /** self-message to instruct ourselves to drop out of the network */
   cMessage *dropout;
-  int tsession;
+  double tsession;
 };
 
 #endif /* TASK2NODE_H_ */

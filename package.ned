@@ -7,13 +7,13 @@ simple IdServer
     parameters:
         @display("i=block/routing,gold");
         @display("p=200,200");
-        int timeout = default(2000);
+        int timeout = default(2);
         int range_start = default(0);
         int range_end = default(2147483647);
-        int pulse_rate = default(1000);
-        int tictoc_start = default(18000);
-        int tictoc_interval = default(6000);
-        int tictoc_lasts = default(17998);
+        int pulse_rate = default(1);
+        int tictoc_start = default(180);
+        int tictoc_interval = default(60);
+        int tictoc_lasts = default(17.998);
     gates:
         inout gate[];
 }
@@ -24,11 +24,11 @@ simple IdNode
         @display("i=block/routing,gray");
         @display("p=50,50,ring,150,150");
         int initialDelay = default(-1); // when the node will join the net (-1 means random time)
-        int minKeepIdTime = default(30000); // minKeepIdTime
-        int maxKeepIdTime = default(40000); //
-        int rejoinDelay = default(5000); // 
-        int retryTime = default(10000); //
-        int tictoc_session = default(17999);
+        int minKeepIdTime = default(30); // minKeepIdTime
+        int maxKeepIdTime = default(40); //
+        int rejoinDelay = default(5); // 
+        int retryTime = default(10); //
+        int tictoc_session = default(17.999);
     gates:
         inout gate[];
 }

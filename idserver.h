@@ -73,7 +73,7 @@ private:
 	 */
     int ticStart;
     int ticLoop;
-    int ticTurn;
+    double ticTurn;
     MapType ticNodes;
 };
 

@@ -61,7 +61,7 @@ void IdNode::initialize()
 	tsession = par("tictoc_session");
 	initialDelay = par("initialDelay");
 	if (initialDelay < 0) // random delay as default
-		initialDelay = getRNG(0)->intRand()%5000;
+		initialDelay = getRNG(0)->intRand()%5;
 	cMessage* msg = new cMessage(DO_JOIN_MSG);
 	scheduleAt(simTime()+initialDelay, msg);
 }
@@ -181,7 +181,7 @@ CommonNode::HandlingState IdNode::handleUncommonMessage(cMessage *msg)
 			// fetch heart beat information
 			prevBeatSeq = ((IdAssignment*)tmsg)->getLastHeartBeat();
 			beatInterval = ((IdAssignment*)tmsg)->getBeatInterval();
-			beatInterval = beatInterval+beatInterval/4;
+			beatInterval = beatInterval+beatInterval/4.0;
 			// BEGIN: new in task 3
 			// schedule heartbeat check
 			prevBeatTime = simTime();
