@@ -39,7 +39,7 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cpp and .msg files
-OBJS = $O/idserver.o $O/commonnode.o $O/node.o $O/protocol_m.o
+OBJS = $O/commonnode.o $O/protocol_m.o
 
 # Message files
 MSGFILES = \
@@ -126,22 +126,8 @@ depend:
 $O/commonnode.o: commonnode.cpp \
 	protocol_m.h \
 	protocol.h \
-	types.h \
-	commonnode.h
-$O/idserver.o: idserver.cpp \
-	idserver.h \
-	protocol_m.h \
-	protocol.h \
-	types.h \
-	commonnode.h
-$O/node.o: node.cpp \
-	protocol_m.h \
-	protocol.h \
-	types.h \
-	node.h \
 	commonnode.h
 $O/protocol_m.o: protocol_m.cpp \
 	protocol_m.h \
-	protocol.h \
-	types.h
+	protocol.h
 

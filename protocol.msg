@@ -14,50 +14,28 @@
 // 
 
 enum MessageType {
-    PING = 1;
-    PONG = 2;
-    ACQUIRE_ID = 3;
-    ID_ASSIGNMENT = 4;
-    HEARTBEAT = 5;
+    HELLO = 1;
+    ROUTABLE = 2;
 }
 
 cplusplus {{
 #include "protocol.h"
 }}
 struct Identifier;
-struct PacketPath;
+struct PacketPayload;
 
 message AcsMessage {
     int msgType;
-    PacketPath path;
 }
 
-message Ping extends AcsMessage {
-    msgType = PING;
-    Identifier id;
-}
-message Pong extends AcsMessage {
-    msgType = PONG;
-	Identifier id;
+message HelloMessage extends AcsMessage {
+    msgType = HELLO;
+    Identifier source;
 }
 
-message AcquireId extends AcsMessage {
-    msgType = ACQUIRE_ID;
-    Identifier id;
-    bool hasId;
-    long messageId;
-}
-
-message IdAssignment extends AcsMessage {
-    msgType = ID_ASSIGNMENT;
-    Identifier id;
-    long messageId;
-    long lastHeartBeat;
-    int beatInterval;
-}
-
-// added in task 3
-message HeartBeat extends AcsMessage {
-    msgType = HEARTBEAT;
-    long seq;
+message RoutableMessage extends AcsMessage {
+    msgType = ROUTABLE;
+    Identifier source;
+    Identifier target;
+    PacketPayload payload;
 }
