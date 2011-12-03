@@ -34,8 +34,9 @@ protected:
  // virtual void handleMessage(cMessage *msg);
   /** set hasId and set node color in ui accordingly */
   virtual void setHasId(bool has);
-  virtual bool hasId() { return _hasId; }
+  virtual bool hasId() const { return _hasId; }
   virtual Identifier* getId() { return id; }
+  virtual Identifier* getId() const { return id; }
   virtual void scheduleHeartBeatCheck();
   virtual HandlingState handleUncommonMessage(cMessage *msg);
   virtual bool handleSelfMessage(cMessage *msg);
@@ -55,7 +56,7 @@ private:
   /** did we already receive a heart beat earlier on? */
   bool firstBeat;
   /** the interval in which the server is firing heart beats */
-  int beatInterval;
+  double beatInterval;
   Identifier* id;
   /** self-message to instruct ourselves to drop out of the network */
   cMessage *dropout;

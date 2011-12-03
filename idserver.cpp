@@ -37,7 +37,8 @@ void IdServer::initialize()
 	EV << "Task2Server initialized\n";
 	lastBeat = simTime()+pulseRate;
 	startHelloProtocol();
-	scheduleAt(lastBeat, &fireBeat);
+	if (pulseRate > 0)
+		scheduleAt(lastBeat, &fireBeat);
 	scheduleAt(simTime()+ticTocStart,&ticTocInitiation);
 }
 
@@ -70,8 +71,8 @@ bool IdServer::handleSelfMessage(cMessage *msg)
 		rmsg->setTarget(Identifier(src));
 		rmsg->setSource(*getId());
 		rmsg->setPayload(new InitiateTicToc(Identifier(dst)));
-		EV << "Sending tic toc initiation packet for communication between " << src << " <-> " << dst;
-		routeMessage(rmsg);
+		log() << "Sending tic toc initiation packet for communication between " << src << " <-> " << dst << "\n";
+		forwardMessage(rmsg);
 		return true;
 	}
 	// check if we got a delay message

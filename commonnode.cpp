@@ -206,7 +206,7 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 		{
 			EV << "Trying to forward it...\n";
 			state = HandlingStates::HANDLED | HandlingStates::NODELETE;
-			if (!routeMessage(rmsg))
+			if (!forwardMessage(rmsg))
 			{
 				EV << "Couldn't route message for target " << rmsg->getTarget().id;
 			}
@@ -242,7 +242,7 @@ CommonNode::HandlingState CommonNode::handleRoutableMessage(RoutableMessage* msg
 					msg->setTarget(src);
 					msg->setSource(*getId());
 					EV << "Trying to send it back!\n";
-					routeMessage(msg);
+					forwardMessage(msg);
 				} else {
 					EV << "It shall rest in peace now.\n";
 					EV << "EndTime: " << tt->endTime << " / currentTime: " << simTime() << "\n";
@@ -259,7 +259,7 @@ CommonNode::HandlingState CommonNode::handleRoutableMessage(RoutableMessage* msg
 				EV << "duration: " << ticTocDuration << "\n";
 				rmsg->setTarget(((InitiateTicToc*)msg->getPayload())->target);
 				rmsg->setSource(*getId());
-				routeMessage(rmsg);
+				forwardMessage(rmsg);
 				state = HandlingStates::HANDLED;
 			}
 			break;
@@ -270,7 +270,7 @@ CommonNode::HandlingState CommonNode::handleRoutableMessage(RoutableMessage* msg
 	return state;
 }
 
-bool CommonNode::routeMessage(RoutableMessage *msg)
+bool CommonNode::forwardMessage(RoutableMessage *msg)
 {
 	if (!hasId() || msg->getTarget() == *getId()) // return false if we're disconnected or the actual target.
 	{
@@ -286,4 +286,12 @@ bool CommonNode::routeMessage(RoutableMessage *msg)
 	RoutingEntry &e = iter->second;
 	send(msg,"gate$o",e.gateNum);
 	return true;
+}
+
+std::string CommonNode::info() const
+{
+	if (hasId())
+		return getId()->info();
+	else
+		return std::string("<no id>");
 }

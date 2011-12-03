@@ -59,7 +59,7 @@ void IdNode::initialize()
 	rejoinDelay = par("rejoinDelay");
 	initialDelay = par("initialDelay");
 	if (initialDelay < 0) // random delay as default
-		initialDelay = getRNG(0)->intRand()%5000;
+		initialDelay = getRNG(0)->doubleRand()*5;
 	cMessage* msg = new cMessage(DO_JOIN_MSG);
 	scheduleAt(simTime()+initialDelay, msg);
 }
@@ -95,6 +95,8 @@ void IdNode::setHasId(bool has)
 
 void IdNode::scheduleHeartBeatCheck()
 {
+	if (beatInterval <= 0)
+		return;
 	cMessage* msg = new cMessage(CHECK_HEARTBEAT_MSG);
 	msg->setControlInfo(new HeartControl(prevBeatSeq));
 	scheduleAt(prevBeatTime+beatInterval, msg);
@@ -185,7 +187,7 @@ CommonNode::HandlingState IdNode::handleUncommonMessage(cMessage *msg)
 			// fetch heart beat information
 			prevBeatSeq = ((IdAssignment*)tmsg)->getLastHeartBeat();
 			beatInterval = ((IdAssignment*)tmsg)->getBeatInterval();
-			beatInterval = beatInterval+beatInterval/4;
+			beatInterval = beatInterval+beatInterval/4.0;
 			// BEGIN: new in task 3
 			// schedule heartbeat check
 			prevBeatTime = simTime();

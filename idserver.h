@@ -28,8 +28,9 @@ protected:
     virtual void initialize();
     virtual bool handleSelfMessage(cMessage *msg);
     virtual HandlingState handleUncommonMessage(cMessage *msg);
-    virtual bool hasId() { return true; }
+    virtual bool hasId() const { return true; }
     virtual Identifier* getId() { return id; }
+    virtual Identifier* getId() const { return id; }
 private:
     cEnvir& log();
     Identifier* id;

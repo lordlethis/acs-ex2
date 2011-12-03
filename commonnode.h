@@ -10,6 +10,7 @@
 
 #include <omnetpp.h>
 #include "routingtable.h"
+#include <string>
 
 class Identifier;
 
@@ -44,9 +45,11 @@ protected:
 	virtual HandlingState handleRoutableMessage(RoutableMessage *msg);
 	virtual void initialize();
 	virtual Identifier* getId() = 0;
-	virtual bool hasId() = 0;
+	virtual Identifier* getId() const = 0;
+	virtual bool hasId() const = 0;
 	void startHelloProtocol();
-	bool routeMessage(RoutableMessage* msg);
+	bool forwardMessage(RoutableMessage* msg);
+	virtual std::string info() const;
 	RoutingTable routingTable;
 private:
 	HandlingState handleCommonMessage(cMessage *msg);
