@@ -55,22 +55,7 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 	{
 	case LM_BROADCAST:
 	{
-		LandmarkBroadcast* lmb = (LandmarkBroadcast*)msg;
-		int hc = lmb->getHopCount();
-		int lmId = lmb->getLandmarkId();
-		lmb->setHopCount(hc+1);
-		state = HandlingStates::BROADCAST | HandlingStates::HANDLED;
-		if (getId().hasLandmarkId(lmId) && getId()[lmId] <= hc)
-		{
-			// remove this from circulation because it's either cycling or irrelevant
-			state = HandlingStates::HANDLED;
-			break;
-		}
-		getId()[lmId] = hc;
-		HelloMessage hmsg;
-		hmsg.setSource(getId());
-		broadcastMessage(&hmsg);
-
+		state = handleLandmarkBroadcast((LandmarkBroadcast*)msg);
 		break;
 	}
 	case HELLO:
@@ -86,7 +71,7 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 		state = HandlingStates::HANDLED;
 		if (std::find(rmsg->getPath().begin(),rmsg->getPath().end(),getId()) != rmsg->getPath().end())
 		{
-			EV << "detected a routing loop... losing message now.\n";
+			log() << "detected a routing loop... losing message now.\n";
 			break;
 		}
 
@@ -103,6 +88,34 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 	return state;
 }
 
+CommonNode::HandlingState CommonNode::handleLandmarkBroadcast(LandmarkBroadcast* lmb)
+{
+	// check if we've seen this message before
+	if (std::find(lmMsgIds.begin(), lmMsgIds.end(), lmb->getMessageId()) != lmMsgIds.end())
+	{
+		log() << "removing old lm broadcast from circulation" << "\n";
+		return HandlingStates::HANDLED;
+	}
+	lmMsgIds.push_back(lmb->getId());
+	if (lmMsgIds.size() > 20)
+		lmMsgIds.erase(lmMsgIds.begin());
+	int hc = lmb->getHopCount()+1;
+	int lmId = lmb->getLandmarkId();
+	log() << "Got a lm beacon: LMID = " << lmId << ", HC = " << hc << "\n";
+	lmb->setHopCount(hc);
+	if (getId().hasLandmarkId(lmId) && getId()[lmId] < hc)
+	{
+		// remove this from circulation because it's irrelevant
+		return HandlingStates::HANDLED;
+	}
+	getId()[lmId] = hc;
+	HelloMessage hmsg;
+	hmsg.setSource(getId());
+	broadcastMessage(&hmsg);
+	return HandlingStates::BROADCAST | HandlingStates::HANDLED;
+}
+
+
 void CommonNode::broadcastMessage(cMessage *msg)
 {
 	for (int i = 0; i < gateSize("gate"); ++i)
@@ -113,11 +126,12 @@ void CommonNode::broadcastMessage(cMessage *msg)
 
 void CommonNode::handleRoutableMessage(RoutableMessage *msg)
 {
+	log() << "Got a routable, but I don't handle them yet..." << "\n";
 }
 
 void CommonNode::forwardMessage(RoutableMessage* msg)
 {
-	GateId closestGate = NULL;
+	GateId closestGate = 0;
 	int minDistance = INT_MAX;
 	Identifier &id = getId();
 	for (NeighbourList::iterator iter = neighbours.begin(); iter != neighbours.end(); ++iter)
@@ -150,4 +164,16 @@ void CommonNode::forwardMessage(RoutableMessage* msg)
 	}
 	if (closestGate)
 		send(msg,closestGate);
+}
+
+cEnvir& CommonNode::log() const
+{
+        return (EV << "(" << getName()  << ") ");
+}
+
+std::string CommonNode::info() const
+{
+	std::stringstream ss;
+	ss << getId().info();
+	return ss.str();
 }

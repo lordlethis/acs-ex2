@@ -23,6 +23,7 @@ void LandmarkNode::initialize()
 	getId()[lmId] = 0;
 	broadcastLandmark = new cMessage("LANDMARK_BROADCAST");
 	scheduleAt(simTime()+100,broadcastLandmark);
+	WATCH(lmId);
 }
 
 void LandmarkNode::handleSelfMessage(cMessage *msg)
@@ -32,6 +33,8 @@ void LandmarkNode::handleSelfMessage(cMessage *msg)
 		LandmarkBroadcast lmb;
 		lmb.setLandmarkId(lmId);
 		lmb.setHopCount(0);
+		long id = (simTime().raw() << 32)+getRNG(0)->intRand();
+		lmb.setMessageId(id);
 		broadcastMessage(&lmb);
 		scheduleAt(simTime()+2,broadcastLandmark);
 	}

@@ -26,9 +26,20 @@ private:
 	IdentMap ids;
 };
 
+class Payload {
+public:
+	virtual int getPayloadType() = 0;
+};
+struct TicTocPayload : public Payload {
+	virtual int getPayloadType() { return 0; }
+	simtime_t endTime;
+};
+
+
 /**
  * Typedef to allow us to use vectors in .msg files
  */
 typedef std::vector<Identifier> PacketPath;
+typedef Payload* PacketPayload;
 
 #endif //_TASK1_PROTOCOL_

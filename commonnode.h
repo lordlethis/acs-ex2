@@ -12,8 +12,11 @@
 #include <boost/unordered_map.hpp>
 #include "protocol.h"
 #include <string.h>
+#include <string>
+#include <vector>
 
 class RoutableMessage;
+class LandmarkBroadcast;
 
 struct HandlingStates {
 	static const unsigned int UNHANDLED = 0;
@@ -40,6 +43,7 @@ public:
 	virtual void handleMessage(cMessage *msg);
 	typedef unsigned int HandlingState;
 	typedef boost::unordered_map<GateId,Identifier> NeighbourList;
+	virtual std::string info() const;
 protected:
 	/**
 	 * Handle messages, not including message disposal.
@@ -52,13 +56,18 @@ protected:
 	 */
 	virtual void handleSelfMessage(cMessage *msg) = 0;
 	Identifier& getId() { return _id; }
+	const Identifier& getId() const { return _id; }
 	void forwardMessage(RoutableMessage* msg);
 	void handleRoutableMessage(RoutableMessage* msg);
 	void broadcastMessage(cMessage* msg);
+	cEnvir& log() const;
 private:
+	HandlingState handleLandmarkBroadcast(LandmarkBroadcast* lmsg);
 	HandlingState handleCommonMessage(cMessage *msg);
+
 	Identifier _id;
 	NeighbourList neighbours;
+	std::vector<long> lmMsgIds;
 };
 
 #endif /* COMMONNODE_H_ */

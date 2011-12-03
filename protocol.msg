@@ -32,6 +32,7 @@ message AcsMessage {
 message LandmarkBroadcast extends AcsMessage {
     msgType = LM_BROADCAST;
     int landmarkId;
+    long messageId;
     int hopCount;
 }
 
