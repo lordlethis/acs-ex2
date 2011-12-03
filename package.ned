@@ -11,6 +11,9 @@ simple IdServer
         int range_start = default(0);
         int range_end = default(2147483647);
         int pulse_rate = default(1000);
+        int tictoc_start = default(180000);
+        int tictoc_interval = default(60000);
+        int tictoc_lasts = default(180000);
     gates:
         inout gate[];
 }

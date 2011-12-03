@@ -20,6 +20,7 @@
 #define DO_JOIN_MSG   "GET_AN_ID"
 #define DO_LEAVE_MSG  "LEAVE_NETWORK"
 #define CHECK_HEARTBEAT_MSG "CHECK_PULSE"
+#define START_TICTOC_MSG "START_TIC"
 
 static AcsMessage* copyMessage(AcsMessage* msg);
 
@@ -45,6 +46,7 @@ void IdNode::initialize()
 {
 	id = NULL;
 	_hasId = false;
+
 	// make stuff observable in UI
 	WATCH_PTR(id);
 	WATCH(_hasId);
@@ -126,17 +128,17 @@ void IdNode::handleSelfMessage(cMessage *msg)
 		delete msg;
 	}
 	// check if we got a self-message telling us to drop out of the network (because we can)
-	else if (msg->getName() && !strcmp(msg->getName(), DO_LEAVE_MSG))
-	{
-		// drop out of network, schedule reassociation
-		log() << "Leaving the network\n";
-		dropout = NULL;
-		setHasId(false);
-		cMessage* jmsg = new cMessage(DO_JOIN_MSG);
-		simtime_t delay = rejoinDelay;
-		scheduleAt(simTime()+delay,jmsg);
-		delete msg;
-	}
+//	else if (msg->getName() && !strcmp(msg->getName(), DO_LEAVE_MSG))
+//	{
+//		// drop out of network, schedule reassociation
+//		log() << "Leaving the network\n";
+//		dropout = NULL;
+//		setHasId(false);
+//		cMessage* jmsg = new cMessage(DO_JOIN_MSG);
+//		simtime_t delay = rejoinDelay;
+//		scheduleAt(simTime()+delay,jmsg);
+//		delete msg;
+//	}
 	// check if we got a self-message telling us to check the heart beat reception
 	else if (msg->getName() && !strcmp(msg->getName(), CHECK_HEARTBEAT_MSG))
 	{
@@ -186,9 +188,9 @@ CommonNode::HandlingState IdNode::handleUncommonMessage(cMessage *msg)
 			// END: new in task 3
 
 			// schedule disassociation
-			cMessage* lmsg = dropout = new cMessage(DO_LEAVE_MSG);
-			simtime_t delay = getRNG(0)->intRand(maxKeepIdTime-minKeepIdTime)+minKeepIdTime;
-			scheduleAt(simTime()+delay,lmsg);
+//			cMessage* lmsg = dropout = new cMessage(DO_LEAVE_MSG);
+//			simtime_t delay = getRNG(0)->intRand(maxKeepIdTime-minKeepIdTime)+minKeepIdTime;
+//			scheduleAt(simTime()+delay,lmsg);
 			state = HandlingStates::HANDLED;
 		} else if (hasId()) {
 			state = HandlingStates::HANDLED | HandlingStates::FORWARD;
@@ -224,6 +226,31 @@ CommonNode::HandlingState IdNode::handleUncommonMessage(cMessage *msg)
 	// END: introduced in task 3
 //	default:
 //		log() << "Got a message of unknown type \"" << tmsg->getMsgType() << "\". Ignoring...\n";
+	// Handling tictoc init message from server
+	case TICTOC_INIT:
+		if (hasId())
+		{
+			if (((TicInit*)tmsg)->getId().id == getId()->id) // if it is for us
+			{
+				// we were initialized for tictoc
+				int ngates = gateSize("gate");
+				for (int i = 0; i < ngates; ++i)
+				{
+					RouteRecord *findToc = new RouteRecord("ROUTE_REC",ROUTE_REC);
+					findToc->getPath().push_back(*getId());
+					findToc->setSource(*getId());
+					findToc->setDest(((TicInit*)tmsg)->getTocId().id);
+					findToc->setEnd(simTime());
+					send(findToc, "gate$o", i);
+				}
+				state = HandlingStates::HANDLED;
+			}
+			else	// we mark it for forward
+			{
+				state = HandlingStates::FORWARD | HandlingStates::HANDLED;
+			}
+		}
+		break;
 	}
 	return state;
 }

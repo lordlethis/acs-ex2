@@ -101,6 +101,99 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 		state = HandlingStates::FORWARD;
 		break;
 	} // end PONG
+	case ROUTE_REC:
+	{
+		if (hasId())
+		{
+			if (((RouteRecord*)amsg)->getSource().id != getId()->id) // tictoc msg is not for us
+			{
+				//
+				RouteRecord* rmsg = dynamic_cast<RouteRecord*>(amsg);
+				int idx = rmsg->getArrivalGate()->getIndex();
+				rmsg->getPath().push_back(*getId());
+
+				RouteStep *step = new RouteStep(getId()->id, idx);
+				rmsg->getRoute().push_back(*step);
+				for (int i = 0; i < gateSize("gate"); ++i) {
+					if (i == idx) continue;
+					AcsMessage *m = rmsg->dup();
+					if (m)
+					{
+						send(m, "gate$o",i);
+					}
+				}
+
+				state = HandlingStates::HANDLED;
+			}
+			else	// tictoc msg is for us so we send tic node that we confirm or maybe just answer toc
+			{
+				Routable *Toc = new Routable("ROUTABLE",ROUTABLE);
+				Toc->getPath().push_back(*getId());
+				Toc->setSource(*getId());
+				Toc->setDest(((RouteRecord*)amsg)->getSource().id);
+				Toc->setRoute(((RouteRecord*)amsg)->getRoute());
+				Toc->setEnd(((RouteRecord*)amsg)->getEnd());
+				Toc->setTictoc(true);
+				cGate* gate = msg->getArrivalGate();
+				send(Toc,"gate$o",gate->getIndex());
+
+				state = HandlingStates::HANDLED;
+			}
+		}
+		break;
+	}
+	case ROUTABLE:
+	{
+		if(hasId())
+		{
+			if(((Routable*)amsg)->getSource().id == getId()->id)// tictoc message arrived to one of the nodes
+			{
+				if( ((((Routable*)amsg)->getEnd().time) > simTime()) && (((Routable*)amsg)->getTictoc()) )
+				{ //time for tictoc has run out and as a tic node we stop the communication
+					state = HandlingStates::HANDLED;	// we just do nothing :D
+				}else // we need to continue comunnication, to send message back
+				{
+					Routable* old = dynamic_cast<Routable*>(amsg);
+					Routable* msg = new Routable("ROUTABLE",ROUTABLE);
+					msg->getPath().push_back(*getId());
+
+					msg->setSource(*getId());
+					msg->setDest(old->getSource().id);
+					msg->setRoute(old->getNewRoute());
+					if(old->getTictoc())msg->setTictoc(false);
+					else msg->setTictoc(true);
+					msg->setEnd(old->getEnd());
+
+					int gate = amsg->getArrivalGate()->getIndex();
+					send(msg,"gate$o",gate);
+
+					state = HandlingStates::HANDLED;
+
+				}
+			}else // tictoc message is not for us and we forward it to the next node in the route
+			{
+				Routable* rmsg = dynamic_cast<Routable*>(amsg);
+				rmsg->getPath().push_back(*getId());
+
+				// Recording new route
+				int idx = rmsg->getArrivalGate()->getIndex();
+				RouteStep *step = new RouteStep(getId()->id, idx);
+				rmsg->getNewRoute().push_back(*step);
+
+				// Using the last element in the route to get the next hop
+				int gate = rmsg->getRoute().back().gateNum;
+
+				// Removing the last element in the route to prepare it for the next node
+				rmsg->getRoute().pop_back();
+
+				AcsMessage *m = rmsg->dup();
+				if (m)send(m,"gate$o",gate);
+
+				state = HandlingStates::HANDLED;
+			}
+		}
+		break;
+	}
 	} // end switch msgtype
 	return state;
 }

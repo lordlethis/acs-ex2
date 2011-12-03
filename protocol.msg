@@ -19,6 +19,10 @@ enum MessageType {
     ACQUIRE_ID = 3;
     ID_ASSIGNMENT = 4;
     HEARTBEAT = 5;
+    ROUTE_REC = 6;
+    ROUTABLE = 7;
+    TICTOC_INIT = 8;
+    TICTOC_TURN = 9;
 }
 
 cplusplus {{
@@ -26,6 +30,9 @@ cplusplus {{
 }}
 struct Identifier;
 struct PacketPath;
+struct RouteStep;
+struct RoutePath;
+struct SiTime;
 
 message AcsMessage {
     int msgType;
@@ -60,4 +67,34 @@ message IdAssignment extends AcsMessage {
 message HeartBeat extends AcsMessage {
     msgType = HEARTBEAT;
     long seq;
+}
+
+message RouteRecord extends AcsMessage {
+    msgType = ROUTE_REC;
+    Identifier source;
+    Identifier dest;
+    RoutePath route;
+    SiTime end;
+}
+
+message Routable extends AcsMessage {
+    msgType = ROUTABLE;
+    Identifier source;
+    Identifier dest;
+    RoutePath route;
+    RoutePath newRoute;
+    SiTime end;
+    bool tictoc;
+}
+
+message TicInit extends AcsMessage {
+    msgType = TICTOC_INIT;
+    Identifier id;
+    Identifier tocId;
+}
+
+message TicTurn extends AcsMessage {
+    msgType = TICTOC_TURN;
+    int tic;
+    int toc;
 }
