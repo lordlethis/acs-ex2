@@ -11,9 +11,9 @@ simple IdServer
         int range_start = default(0);
         int range_end = default(2147483647);
         int pulse_rate = default(1000);
-        int tictoc_start = default(180000);
-        int tictoc_interval = default(60000);
-        int tictoc_lasts = default(180000);
+        int tictoc_start = default(18000);
+        int tictoc_interval = default(6000);
+        int tictoc_lasts = default(17998);
     gates:
         inout gate[];
 }
@@ -28,6 +28,7 @@ simple IdNode
         int maxKeepIdTime = default(40000); //
         int rejoinDelay = default(5000); // 
         int retryTime = default(10000); //
+        int tictoc_session = default(17999);
     gates:
         inout gate[];
 }

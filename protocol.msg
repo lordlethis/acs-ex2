@@ -84,7 +84,7 @@ message Routable extends AcsMessage {
     RoutePath route;
     RoutePath newRoute;
     SiTime end;
-    bool tictoc;
+    int tictoc;
 }
 
 message TicInit extends AcsMessage {

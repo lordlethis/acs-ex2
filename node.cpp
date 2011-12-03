@@ -46,7 +46,7 @@ void IdNode::initialize()
 {
 	id = NULL;
 	_hasId = false;
-
+	playing=false;
 	// make stuff observable in UI
 	WATCH_PTR(id);
 	WATCH(_hasId);
@@ -58,6 +58,7 @@ void IdNode::initialize()
 	maxKeepIdTime = par("maxKeepIdTime");
 	retryTime = par("retryTime");
 	rejoinDelay = par("rejoinDelay");
+	tsession = par("tictoc_session");
 	initialDelay = par("initialDelay");
 	if (initialDelay < 0) // random delay as default
 		initialDelay = getRNG(0)->intRand()%5000;
@@ -232,16 +233,24 @@ CommonNode::HandlingState IdNode::handleUncommonMessage(cMessage *msg)
 		{
 			if (((TicInit*)tmsg)->getId().id == getId()->id) // if it is for us
 			{
-				// we were initialized for tictoc
-				int ngates = gateSize("gate");
-				for (int i = 0; i < ngates; ++i)
+				if(!playing)
 				{
-					RouteRecord *findToc = new RouteRecord("ROUTE_REC",ROUTE_REC);
-					findToc->getPath().push_back(*getId());
-					findToc->setSource(*getId());
-					findToc->setDest(((TicInit*)tmsg)->getTocId().id);
-					findToc->setEnd(simTime());
-					send(findToc, "gate$o", i);
+					log() << "I AM TIC: " << getId()->id << "\n";
+					log() << "MY TOC IS: " << ((TicInit*)tmsg)->getTocId().id << "\n";
+					setDisplayString("i=block/routing,red");
+					// we were initialized for tictoc
+					bubble("I AM TIC");
+					int ngates = gateSize("gate");
+					for (int i = 0; i < ngates; ++i)
+					{
+						RouteRecord *findToc = new RouteRecord("ROUTE_REC",ROUTE_REC);
+						findToc->getPath().push_back(*getId());
+						findToc->setSource(*getId());
+						findToc->setDest(((TicInit*)tmsg)->getTocId().id);
+						findToc->setEnd(simTime()+tsession);
+						send(findToc, "gate$o", i);
+					}
+					playing = true;
 				}
 				state = HandlingStates::HANDLED;
 			}

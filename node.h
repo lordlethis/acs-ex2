@@ -59,6 +59,7 @@ private:
   Identifier* id;
   /** self-message to instruct ourselves to drop out of the network */
   cMessage *dropout;
+  int tsession;
 };
 
 #endif /* TASK2NODE_H_ */

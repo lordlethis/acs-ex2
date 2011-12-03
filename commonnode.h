@@ -40,6 +40,8 @@ protected:
 	virtual void handleSelfMessage(cMessage *msg) = 0;
 	virtual Identifier* getId() = 0;
 	virtual bool hasId() = 0;
+	/** flag for the first init tic */
+	bool playing;
 private:
 	HandlingState handleCommonMessage(cMessage *msg);
 };

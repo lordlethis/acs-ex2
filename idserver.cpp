@@ -38,6 +38,7 @@ void IdServer::initialize()
 	WATCH(rangeStart);
 	WATCH(rangeEnd);
 	WATCH(pulseRate);
+	WATCH(ticStart);
 	EV << "Task2Server initialized\n";
 	lastBeat = simTime()+pulseRate;
 	scheduleAt(lastBeat, &fireBeat);
@@ -98,19 +99,26 @@ void IdServer::handleSelfMessage(cMessage *msg)
 	//initializing tictoc
 	else if (msg->getName() != NULL && !strcmp(msg->getName(),INIT_TICTOC_MSG))
 	{
+		log() << "TICTOOOOC...\n";
 		// choosing two random nodes for tictoc
 		int roundsize = nextId - 1;
 
 		// finding tic node that is not already in action
-		int tic = rand() % roundsize + rangeStart;
-		do	tic = rand() % roundsize + rangeStart;
-		while(ticNodes.find(tic)==ticNodes.end());
+		int tic;
+		do
+		{
+			tic = rand() % roundsize + rangeStart;
+		}
+		while(ticNodes.find(tic)!=ticNodes.end());
 		ticNodes[tic]=tic;
 
 		// finding toc node that is not already in action
-		int toc = rand() % roundsize + rangeStart;
-		do toc = rand() % roundsize + rangeStart;
-		while(ticNodes.find(toc)==ticNodes.end());
+		int toc;
+		do
+		{
+		toc = rand() % roundsize + rangeStart;
+		}
+		while(ticNodes.find(toc)!=ticNodes.end());
 		ticNodes[toc]=toc;
 
 		log() << "sending tictoc initialization to tic node: \n";
@@ -133,7 +141,7 @@ void IdServer::handleSelfMessage(cMessage *msg)
 		scheduleAt(simTime()+ticTurn, turn);
 	}
 	// Release tic and toc nodes because they are finished
-	else if (msg->getName() != NULL && !strcmp(msg->getName(),INIT_TICTOC_MSG))
+	else if (msg->getName() != NULL && !strcmp(msg->getName(),RELESE_TICTOC))
 	{
 		TicTurn *turn = check_and_cast<TicTurn*>(msg);
 		MapType::iterator iter1 = ticNodes.find(turn->getTic());
