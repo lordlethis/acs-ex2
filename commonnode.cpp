@@ -7,11 +7,20 @@
 
 #include "commonnode.h"
 #include "protocol_m.h"
+#include "idcollector.h"
 
 CommonNode::CommonNode() {
 }
 
 CommonNode::~CommonNode() {
+}
+
+void CommonNode::initialize()
+{
+	int x = par("x");
+	int y = par("y");
+	id = Identifier(x,y);
+	IdCollector::instance()->addId(id);
 }
 
 void CommonNode::handleMessage(cMessage *msg)
@@ -59,8 +68,22 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 	case HELLO:
 	{
 		HelloMessage* hmsg = (HelloMessage*)amsg;
-		// TODO: do neighbour exchange, routables...
+		Identifier source = hmsg->getSource();
+		neighbours[hmsg->getArrivalGate()->getIndex()] = source;
 		break;
+	}
+	case ROUTABLE:
+	{
+		RoutableMessage* rmsg = (RoutableMessage*)amsg;
+		if (rmsg->getTarget() == getId())
+		{
+			handleRoutableMessage(rmsg);
+		}
+		else
+		{
+			forwardMessage(rmsg);
+		}
+		state = HandlingStates::HANDLED | HandlingStates::NODELETE;
 	}
 	default:
 		break;
@@ -68,6 +91,51 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 	return state;
 }
 
+void CommonNode::handleRoutableMessage(RoutableMessage *msg)
+{
+	if (!msg->getPayload())
+		return;
+	switch (msg->getPayload()->getPayloadType())
+	{
+	case 0: // TICTOC
+	{
+		TicTocPayload* tt = (TicTocPayload*)msg->getPayload();
+		if (tt->endTime >= simTime())
+		{
+			log() << "Tictoc should end... Byebye... :)" << "\n";
+			delete tt;
+			delete msg;
+			return;
+		}
+		msg->setTarget(msg->getSource());
+		msg->setSource(getId());
+		forwardMessage(msg);
+	}
+	default:
+		log() << "unknown payload type " << msg->getPayload()->getPayloadType() << "\n";
+	}
+}
+
 void CommonNode::forwardMessage(RoutableMessage* msg)
 {
+	int gateNum = -1;
+	int minDist = msg->getTarget().distance(getId());
+	for (NeighbourList::iterator iter = neighbours.begin(); iter!=neighbours.end(); ++iter)
+	{
+		int distance = iter->second.distance(msg->getTarget());
+		if (distance < minDist)
+		{
+			minDist = distance;
+			gateNum = iter->first;
+		}
+	}
+	if (gateNum != -1)
+		send(msg,"gate$o",gateNum);
+	else
+		log() << "Dropping routable message - there's no neighbour that is closer to the target than we are already. Gready routing fails." << "\n";
+}
+
+cEnvir& CommonNode::log()
+{
+	return ( EV << "[" << getName() << " - " << getId().info() << "] " );
 }

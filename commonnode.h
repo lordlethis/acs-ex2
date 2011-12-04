@@ -42,10 +42,13 @@ protected:
 	 * This method is called from within #handleMessage(cMessage*)
 	 */
 	virtual void handleSelfMessage(cMessage *msg) = 0;
+	virtual void initialize();
 	virtual Identifier& getId() { return _id; }
 	virtual const Identifier& getId() const { return _id; }
 	virtual bool hasId() { return true; }
+	virtual void handleRoutableMessage(RoutableMessage* msg);
 	virtual void forwardMessage(RoutableMessage* msg);
+	virtual cEnvir& log();
 private:
 	Identifier _id;
 	HandlingState handleCommonMessage(cMessage *msg);

@@ -124,6 +124,7 @@ depend:
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 $O/commonnode.o: commonnode.cpp \
+	idcollector.h \
 	protocol_m.h \
 	protocol.h \
 	commonnode.h

@@ -16,6 +16,7 @@ struct Identifier : public cObject
 	Identifier(int _x, int _y) : x(_x), y(_y) {}
 	virtual std::string info() const { std::stringstream out; out << "(" << x << " / " << y << ")"; return out.str(); }
 	virtual std::string detailedInfo() const { return info(); }
+	virtual int distance(const Identifier& other) const { int dx = x-other.x; int dy = y-other.y; return dx*dx+dy*dy; }
 	int x;
 	int y;
 	bool operator ==(const Identifier& other) const { return x == other.x && y == other.y; }
