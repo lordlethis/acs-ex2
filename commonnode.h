@@ -36,12 +36,12 @@ protected:
 	 * Handle messages, not including message disposal.
 	 * This method is called from within #handleMessage(cMessage*)
 	 */
-	virtual HandlingState handleUncommonMessage(cMessage *msg) = 0;
+	virtual HandlingState handleUncommonMessage(cMessage *msg) {return HandlingStates::UNHANDLED;}
 	/**
 	 * Handle self messages, including disposal if necessary
 	 * This method is called from within #handleMessage(cMessage*)
 	 */
-	virtual void handleSelfMessage(cMessage *msg) = 0;
+	virtual void handleSelfMessage(cMessage *msg);
 	virtual void initialize();
 	virtual Identifier& getId() { return _id; }
 	virtual const Identifier& getId() const { return _id; }
@@ -49,10 +49,18 @@ protected:
 	virtual void handleRoutableMessage(RoutableMessage* msg);
 	virtual void forwardMessage(RoutableMessage* msg);
 	virtual cEnvir& log();
+	virtual void finish();
 private:
 	Identifier _id;
 	HandlingState handleCommonMessage(cMessage *msg);
 	NeighbourList neighbours;
+	cMessage initiateTicToc;
+	cMessage sendHello;
+	double tictocStart;
+	double tictocInterval;
+	double helloInterval;
+	bool coordinator;
+	int ttStart, ttIter;
 };
 
 #endif /* COMMONNODE_H_ */

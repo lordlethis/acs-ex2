@@ -23,6 +23,7 @@ cplusplus {{
 }}
 struct Identifier;
 struct PacketPayload;
+struct PacketPath;
 
 message AcsMessage {
     int msgType;
@@ -35,6 +36,7 @@ message HelloMessage extends AcsMessage {
 
 message RoutableMessage extends AcsMessage {
     msgType = ROUTABLE;
+    PacketPath path;
     Identifier source;
     Identifier target;
     PacketPayload payload;

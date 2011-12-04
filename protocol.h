@@ -31,8 +31,18 @@ public:
 class TicTocPayload : public Payload
 {
 public:
+	TicTocPayload() : counter(0) {}
 	virtual int getPayloadType() { return 0; }
 	simtime_t endTime;
+	int counter;
+	bool doRecord;
+};
+class InitTicTocPayload : public Payload
+{
+public:
+	virtual int getPayloadType() { return 1; }
+	Identifier destination;
+	bool doRecord;
 };
 
 /**

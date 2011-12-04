@@ -39,7 +39,7 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cpp and .msg files
-OBJS = $O/commonnode.o $O/protocol_m.o
+OBJS = $O/gpsnode.o $O/commonnode.o $O/protocol_m.o
 
 # Message files
 MSGFILES = \
@@ -123,11 +123,16 @@ depend:
 	$(MAKEDEPEND) $(INCLUDE_PATH) -f Makefile -P\$$O/ -- $(MSG_CC_FILES)  ./*.cpp images/*.cpp images/abstract/*.cpp images/background/*.cpp images/block/*.cpp images/device/*.cpp images/maps/*.cpp images/misc/*.cpp images/msg/*.cpp images/old/*.cpp images/status/*.cpp
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
+$O/gpsnode.o: gpsnode.cpp \
+	protocol.h \
+	commonnode.h
 $O/commonnode.o: commonnode.cpp \
 	idcollector.h \
 	protocol_m.h \
 	protocol.h \
 	commonnode.h
+$O/test.o: test.cpp \
+	protocol.h
 $O/protocol_m.o: protocol_m.cpp \
 	protocol_m.h \
 	protocol.h
