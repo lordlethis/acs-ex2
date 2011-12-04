@@ -12,6 +12,16 @@
 #include "protocol.h"
 #include "protocol.h"
 
+/**
+ * Routing table will look like the following...
++-------------+------+-------+------------+--------+
+| target node | gate | nhops | lastUpdate | lastId |
++-------------+------+-------+------------+--------+
+ *
+ * The lastUpdate field is used to remove stale entries (i.e. ones we didn't get a refresh after some time)
+ * The lastId field is used to remove the broadcasted messages early on (i.e. before they did a full cycle) - so it's just some optimization
+ */
+
 struct RoutingEntry {
 	RoutingEntry() {}
 	RoutingEntry(Identifier _target, int _gateNum, int _nhops, simtime_t time, long id) : target(_target),gateNum(_gateNum),nhops(_nhops),lastUpdate(time),lastId(id) {}

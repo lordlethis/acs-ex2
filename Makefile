@@ -129,6 +129,9 @@ $O/commonnode.o: commonnode.cpp \
 	routingtable.h \
 	types.h \
 	commonnode.h
+$O/test.o: test.cpp \
+	protocol.h \
+	types.h
 $O/idserver.o: idserver.cpp \
 	idserver.h \
 	protocol_m.h \
@@ -142,6 +145,11 @@ $O/node.o: node.cpp \
 	routingtable.h \
 	types.h \
 	node.h \
+	commonnode.h
+$O/gpsnode.o: gpsnode.cpp \
+	protocol.h \
+	types.h \
+	routingtable.h \
 	commonnode.h
 $O/protocol_m.o: protocol_m.cpp \
 	protocol_m.h \

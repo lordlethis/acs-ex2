@@ -95,6 +95,7 @@ bool CommonNode::handleSelfMessage(cMessage* msg)
 {
 	if (msg == &sendHelloMsg)
 	{
+		// send out hello messages
 		if (hasId())
 		{
 			for (int i = 0; i < gateSize("gate"); ++i)
@@ -106,6 +107,8 @@ bool CommonNode::handleSelfMessage(cMessage* msg)
 			}
 			++helloId;
 		}
+		// remove routing table entries of nodes we haven't heard about
+		// for a long time...
 		std::vector<Identifier> killList;
 		for (RoutingTable::iterator iter = routingTable.begin(); iter != routingTable.end(); ++iter)
 		{
@@ -116,6 +119,7 @@ bool CommonNode::handleSelfMessage(cMessage* msg)
 		{
 			routingTable.erase(*iter);
 		}
+		// do this again later on...
 		scheduleAt(simTime()+helloInterval,&sendHelloMsg);
 		return true;
 	}
@@ -171,6 +175,12 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 			}
 		}
 		state = HandlingStates::FORWARD | HandlingStates::HANDLED;
+		// go through the whole path vector and
+		//   - add a new routing table entry for ids we didn't know about before
+		//   - update table entries for which we've now learned a shorter path
+		// if we do an update, also update the lastUpdate field.
+		// for the first entry of the path vector, record the message id in order
+		// to remove duplicates early on...
 		int hops = amsg->getPath().size();
 		for (PacketPath::iterator iter = amsg->getPath().begin(); iter != amsg->getPath().end(); ++iter)
 		{
@@ -178,7 +188,7 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 			{
 				// no entry yet - insert one
 				routingTable[*iter] = RoutingEntry(*iter,amsg->getArrivalGate()->getIndex(),hops,simTime(),0L);
-				if (hops == 1)
+				if (hops == amsg->getPath().size())
 					routingTable[*iter].lastId = ((HelloMessage*)amsg)->getMessageId();
 			}
 			else
