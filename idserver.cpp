@@ -99,7 +99,6 @@ void IdServer::handleSelfMessage(cMessage *msg)
 	//initializing tictoc
 	else if (msg->getName() != NULL && !strcmp(msg->getName(),INIT_TICTOC_MSG))
 	{
-		log() << "TICTOOOOC...\n";
 		// choosing two random nodes for tictoc
 		int roundsize = nextId - 1;
 
@@ -140,7 +139,7 @@ void IdServer::handleSelfMessage(cMessage *msg)
 		turn->setToc(toc);
 		scheduleAt(simTime()+ticTurn, turn);
 	}
-	// Release tic and toc nodes because they are finished
+	// Release tic and toc nodes in the internal log because they are finished
 	else if (msg->getName() != NULL && !strcmp(msg->getName(),RELESE_TICTOC))
 	{
 		TicTurn *turn = check_and_cast<TicTurn*>(msg);

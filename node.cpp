@@ -248,6 +248,7 @@ CommonNode::HandlingState IdNode::handleUncommonMessage(cMessage *msg)
 						findToc->setSource(*getId());
 						findToc->setDest(((TicInit*)tmsg)->getTocId().id);
 						findToc->setEnd(simTime()+tsession);
+						findToc->setStart(simTime());
 						send(findToc, "gate$o", i);
 					}
 					playing = true;

@@ -107,11 +107,12 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 		{
 			if (((RouteRecord*)amsg)->getDest().id != getId()->id) // tictoc msg is not for us
 			{
-				//
+				//we record route step an send it broadcast it further on
 				RouteRecord* rmsg = dynamic_cast<RouteRecord*>(amsg);
 				int idx = rmsg->getArrivalGate()->getIndex();
 				rmsg->getPath().push_back(*getId());
 
+				// new step has arrival gate and current node Id
 				RouteStep *step = new RouteStep(getId()->id, idx);
 				rmsg->getRoute().push_back(*step);
 				for (int i = 0; i < gateSize("gate"); ++i) {
@@ -125,7 +126,7 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 
 				state = HandlingStates::HANDLED;
 			}
-			else	// tictoc msg is for us so we send tic node that we confirm or maybe just answer toc
+			else	// tictoc msg is for us so we send tic node that we confirm comunication
 			{
 				if(!playing)
 				{
@@ -133,13 +134,18 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 					setDisplayString("i=block/routing,blue");
 					playing=true;
 					bubble("I AM TOC");
+					// creating the statistics log
+					timeVector.record((simTime() - ((RouteRecord*)amsg)->getStart().time)*2);
+					timeVector.record(((RouteRecord*)amsg)->getPath().size());
+
+					// we create routable message that leads to tic node
 					Routable *Toc = new Routable("ROUTABLE",ROUTABLE);
 					Toc->getPath().push_back(*getId());
 					Toc->setSource(*getId());
 					Toc->setDest(((RouteRecord*)amsg)->getSource().id);
-					Toc->setRoute(((RouteRecord*)amsg)->getRoute());
+					Toc->setRoute(((RouteRecord*)amsg)->getRoute()); // copy route that arrived
 					Toc->setEnd(((RouteRecord*)amsg)->getEnd());
-					Toc->setTictoc(1);
+					Toc->setTictoc(1);	// mark type with 12 that means that next node that receives it is tic node
 					cGate* gate = msg->getArrivalGate();
 					send(Toc,"gate$o",gate->getIndex());
 				}
@@ -152,16 +158,16 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 	{
 		if(hasId())
 		{
-			if(((Routable*)amsg)->getDest().id == getId()->id)// tictoc message arrived to one of the nodes
+			if(((Routable*)amsg)->getDest().id == getId()->id)// tictoc message arrived to one of the nodes(tic or toc)
 			{
-				if(((Routable*)amsg)->getTictoc()==3)
+				if(((Routable*)amsg)->getTictoc()==3)// signal for the toc to stop comunicating
 				{
 					setDisplayString("i=block/routing,green");
 					bubble("LAST TOC!");
 					playing=false;
 					state = HandlingStates::HANDLED;
 				}else
-				{
+				{			// we make new message to send it back, continuing the tic-toc communication
 					Routable* old = dynamic_cast<Routable*>(amsg);
 					Routable* msg = new Routable("ROUTABLE",ROUTABLE);
 					msg->getPath().push_back(*getId());
@@ -169,23 +175,23 @@ CommonNode::HandlingState CommonNode::handleCommonMessage(cMessage* msg)
 					msg->setSource(*getId());
 					msg->setDest(old->getSource().id);
 					msg->setRoute(old->getNewRoute());
-					if(old->getTictoc()==1)
+					if(old->getTictoc()==1)	// we are tic
 					{
-						if(old->getEnd().time <= simTime())
-						{
+						if(old->getEnd().time <= simTime())	// if session time has run out we send message flaged =3
+						{									// to stop the communication
 							playing=false;
 							setDisplayString("i=block/routing,green");
 							msg->setTictoc(3);
 							bubble("LAST TIC!");
 						}else
 						{
-							msg->setTictoc(2);
+							msg->setTictoc(2);	// set the flag for the next node to be toc
 							bubble("TIC!");
 						}
 					}
-					else
+					else	//we are toc
 					{
-						msg->setTictoc(1);
+						msg->setTictoc(1);	// set the flag for the next node to be tic
 						bubble("TOC!");
 					}
 					msg->setEnd(old->getEnd());

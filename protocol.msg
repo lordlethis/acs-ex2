@@ -75,6 +75,7 @@ message RouteRecord extends AcsMessage {
     Identifier dest;
     RoutePath route;
     SiTime end;
+    SiTime start;
 }
 
 message Routable extends AcsMessage {

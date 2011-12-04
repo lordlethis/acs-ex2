@@ -42,6 +42,8 @@ protected:
 	virtual bool hasId() = 0;
 	/** flag for the first init tic */
 	bool playing;
+	cOutVector hopCountVector;
+	cOutVector timeVector;
 private:
 	HandlingState handleCommonMessage(cMessage *msg);
 };
